@@ -14,6 +14,7 @@ import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.NotificationManager;
 import android.app.SearchManager;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -36,6 +37,7 @@ import android.os.Handler;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
+import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -69,6 +71,8 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -76,6 +80,7 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -106,13 +111,17 @@ import org.json.JSONException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -147,7 +156,6 @@ import de.baumann.browser.view.SwipeTouchListener;
 public class BrowserActivity extends AppCompatActivity implements BrowserController {
 
     // Menus
-    private static final int INPUT_FILE_REQUEST_CODE = 1;
     private AdapterRecord adapter;
     private ImageButton fab_overview;
     private ListView listView;
@@ -186,6 +194,42 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     private ValueCallback<Uri[]> filePathCallback = null;
     private AlbumController currentAlbumController = null;
     private ValueCallback<Uri[]> mFilePathCallback;
+    private String mCameraPhotoPath;
+    // Der moderne Ersatz für onActivityResult
+    private final ActivityResultLauncher<Intent> fileChooserLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (mFilePathCallback == null) return;
+
+                Uri[] results = null;
+
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent data = result.getData();
+                    // Falls 'data' null ist, wurde ein Kamerafoto aufgenommen
+                    if (data == null || (data.getData() == null && data.getClipData() == null)) {
+                        if (mCameraPhotoPath != null) {
+                            results = new Uri[]{Uri.parse(mCameraPhotoPath)};
+                        }
+                    } else {
+                        // Daten kommen aus der Galerie / dem Dateimanager
+                        if (data.getData() != null) {
+                            results = new Uri[]{data.getData()};
+                        } else if (data.getClipData() != null) {
+                            int count = data.getClipData().getItemCount();
+                            results = new Uri[count];
+                            for (int i = 0; i < count; i++) {
+                                results[i] = data.getClipData().getItemAt(i).getUri();
+                            }
+                        }
+                    }
+                }
+
+                // Ergebnis an das WebView zurückgeben
+                mFilePathCallback.onReceiveValue(results);
+                mFilePathCallback = null;
+                mCameraPhotoPath = null;
+            }
+    );
 
     public static Context getAppContext() {
         return context;
@@ -332,25 +376,6 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode != INPUT_FILE_REQUEST_CODE || mFilePathCallback == null) {
-            super.onActivityResult(requestCode, resultCode, data);
-            return;
-        }
-        Uri[] results = null;
-        // Check that the response is a good one
-        if (resultCode == Activity.RESULT_OK) {
-            if (data != null) {
-                // If there is not data, then we may have taken a photo
-                String dataString = data.getDataString();
-                if (dataString != null) results = new Uri[]{Uri.parse(dataString)};
-            }
-        }
-        mFilePathCallback.onReceiveValue(results);
-        mFilePathCallback = null;
-    }
-
-    @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
@@ -460,36 +485,56 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
 
     @Override
     public synchronized void updateProgress(int progress) {
+        updateOmniBox();
         progressBar.setProgressCompat(progress, true);
         if (progress < 100) {
             progressBar.setVisibility(VISIBLE);
         } else {
             progressBar.setVisibility(GONE);
-            updateOmniBox();
             saveOpenedTabs();
-            FaviconHelper.setFavicon(context, contentView, ninjaWebView.getUrl(), R.id.menu_icon, R.drawable.icon_image_broken);
-            final Handler handler = new Handler();
-            handler.postDelayed(() -> FaviconHelper.setFavicon(context, contentView, ninjaWebView.getUrl(), R.id.menu_icon, R.drawable.icon_image_broken), 500);
         }
     }
 
     @Override
     public void showFileChooser(ValueCallback<Uri[]> filePathCallback) {
-        if (mFilePathCallback != null) mFilePathCallback.onReceiveValue(null);
+        if (mFilePathCallback != null) {
+            mFilePathCallback.onReceiveValue(null);
+        }
         mFilePathCallback = filePathCallback;
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        File photoFile = null;
+        try {
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+            String imageFileName = "JPEG_" + timeStamp + "_";
+            File storageDir = getExternalCacheDir();
+            photoFile = File.createTempFile(imageFileName, ".jpg", storageDir);
+        } catch (IOException ex) {
+            Log.e("FileChoose", "Fehler beim Erstellen der Bilddatei", ex);
+        }
+        if (photoFile != null) {
+            Uri photoURI = FileProvider.getUriForFile(this,
+                    "de.baumann.browser.fileprovider",
+                    photoFile);
+            mCameraPhotoPath = photoURI.toString();
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+        } else {
+            takePictureIntent = null;
+        }
+        Intent getContentIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        getContentIntent.addCategory(Intent.CATEGORY_OPENABLE);
+        getContentIntent.setType("image/*");
 
-        Intent contentSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        contentSelectionIntent.addCategory(Intent.CATEGORY_OPENABLE);
-        contentSelectionIntent.setType("*/*");
-        Intent[] intentArray;
-        intentArray = new Intent[0];
-
-        Intent chooserIntent = new Intent(Intent.ACTION_CHOOSER);
-        chooserIntent.putExtra(Intent.EXTRA_INTENT, contentSelectionIntent);
-        chooserIntent.putExtra(Intent.EXTRA_TITLE, "Image Chooser");
-        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
-        //noinspection deprecation
-        startActivityForResult(chooserIntent, INPUT_FILE_REQUEST_CODE);
+        Intent chooserIntent = Intent.createChooser(getContentIntent, "Bildquelle auswählen");
+        if (takePictureIntent != null) {
+            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{takePictureIntent});
+        }
+        try {
+            fileChooserLauncher.launch(chooserIntent);
+        } catch (ActivityNotFoundException e) {
+            Log.e("FileChoose", "Keine passende App gefunden", e);
+            mFilePathCallback.onReceiveValue(null);
+            mFilePathCallback = null;
+        }
     }
 
     @Override
@@ -860,38 +905,40 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
 
     @SuppressLint({"UnsafeOptInUsageError"})
     public void updateOmniBox() {
+
+        TextView overflowURL = findViewById(R.id.appbar_URL);
+        String url = ninjaWebView.getUrl();
+        String title = ninjaWebView.getTitle();
+
         if (overViewTab.equals(getString(R.string.album_title_bookmarks))) {
             try {
                 RecordAction action = new RecordAction(context);
                 action.open(true);
-                if (action.checkUrl(ninjaWebView.getUrl(), RecordUnit.TABLE_BOOKMARK)) fab_overview.setImageResource(R.drawable.icon_bookmark_added);
+                if (action.checkUrl(url, RecordUnit.TABLE_BOOKMARK)) fab_overview.setImageResource(R.drawable.icon_bookmark_added);
                 else fab_overview.setImageResource(R.drawable.icon_bookmark);
                 action.close();
             }
             catch (Exception e) {Log.i(TAG, "dialogCustomSearches:" + e);}
         }
 
+        ninjaWebView = (NinjaWebView) currentAlbumController;
+        ninjaWebView.initPreferences(url);
+
         searchOnSiteLayout.setVisibility(GONE);
         appBar.setVisibility(VISIBLE);
         searchOnSiteInput.setText("");
+
+        BadgeUtils.attachBadgeDrawable(badgeDrawable, fab_overview, findViewById(R.id.layout));
         badgeDrawable.setVisible(BrowserContainer.size() > 1);
         badgeDrawable.setNumber(BrowserContainer.size());
-        BadgeUtils.attachBadgeDrawable(badgeDrawable, fab_overview, findViewById(R.id.layout));
         bottom_navigation.getOrCreateBadge(R.id.page_0).setNumber(BrowserContainer.size());
 
-        ninjaWebView = (NinjaWebView) currentAlbumController;
-        String url = ninjaWebView.getUrl();
-        ninjaWebView.initPreferences(url);
-
         if (url != null && ninjaWebView.isForeground()) {
-            progressBar.setVisibility(GONE);
+            appBar_title.setText(title);
             setProfileIcon(fab_menu, url);
-            if (Objects.requireNonNull(ninjaWebView.getTitle()).isEmpty()) appBar_title.setText(url);
-            else appBar_title.setText(ninjaWebView.getTitle());
-            FaviconHelper.setFavicon(context, contentView, url, R.id.menu_icon, R.drawable.icon_image_broken);
-            TextView overflowURL = findViewById(R.id.appbar_URL);
             overflowURL.setText(url);
             HelperUnit.setHighLightedText(context, overflowURL, url, HelperUnit.domain(url));
+            FaviconHelper.setFavicon(context, contentView, url, R.id.menu_icon, R.drawable.icon_image_broken);
         }
     }
 

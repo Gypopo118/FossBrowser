@@ -329,7 +329,8 @@ public class NinjaWebView extends WebView implements AlbumController {
         }
 
         favicon = null;
-        stopped = false;
+        //stopped = false;
+        setFavicon(favicon);
 
         listStandard = new List_standard(context);
         profile = sp.getString("profile", "profileStandard");

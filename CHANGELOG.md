@@ -9,8 +9,10 @@
 - improved: gesture settings
 - improved: menu settings
 - improved: search providers
+- improved: file chooser
 - updated: WIKI + help links in app
 - updated: translations
+- new: open text files
 
 
 ### v 23 Harriet Tubman

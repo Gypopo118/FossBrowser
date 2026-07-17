@@ -33,6 +33,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Objects;
 
 import de.baumann.browser.R;
+import de.baumann.browser.database.FaviconHelper;
 import de.baumann.browser.database.Record;
 import de.baumann.browser.database.RecordAction;
 import de.baumann.browser.unit.BrowserUnit;
