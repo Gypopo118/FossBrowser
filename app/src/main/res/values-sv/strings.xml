@@ -6,7 +6,6 @@
     <string name="app_cancel">Avbryt</string>
     <string name="app_done">Klar</string>
     <string name="app_error">Fel</string>
-    <string name="app_warning">Varning</string>
     <string name="app_permission">För att använda denna funktion måste du ge behörighet. Starta om appen efter det.</string>
     <string name="list_empty">Listan är tom</string>
     <string name="album_title_bookmarks">Bokmärken</string>
@@ -72,7 +71,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">AdBlock</string>
     <string name="setting_title_location">Plats</string>
-    <string name="data_summary">Alla filer kommer att exporteras till \"Documents/browser_backup/\" på ditt SD-kort.</string>
     <string name="clear_title_quit">Rensa när appen stängs</string>
     <string name="clear_title_cache">Rensa cache</string>
     <string name="setting_title_ui">Beteende/UI</string>
@@ -112,7 +110,6 @@
     <string name="toast_quit">Vill du avsluta \"FOSS Browser\"?</string>
     <string name="toast_quit_TAB">Stäng flik?</string>
     <string name="toast_unsecured">Webbplatsen använder en osäker anslutning (\"http\"). Vill du prova en säker anslutning (\"https\")?</string>
-    <string name="toast_backup">Säkerhetskopierade data\? Detta kommer att skriva över befintlig säkerhetskopia.</string>
     <string name="dialog_postOnWebsiteHint">URL att öppna. Kommer sparas för nästa användning.</string>
     <string name="dialog_postOnWebsite">Publicera på webbplats</string>
     <string name="menu_desktopView">Skrivbordsvy</string>
@@ -146,7 +143,6 @@
     <string name="app_permission_notification">Meddelanden</string>
     <string name="setting_title_savedWebSites">Sparade webbplatser</string>
     <string name="setting_title_dynColors">Dynamiska färger</string>
-    <string name="setting_backup_ext">Säkerhetskopiering vid avslutning</string>
     <string name="setting_backup_sumDatabase">Startsite, Bokmärken, historia</string>
     <string name="setting_backup_sumSettings">Inställningar för appar och webbplatser</string>
     <string name="privacy_redirect_use">Använd omdirigeringar</string>

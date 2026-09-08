@@ -6,7 +6,6 @@
     <string name="app_cancel">Отмена</string>
     <string name="app_done">Готово</string>
     <string name="app_error">Ошибка</string>
-    <string name="app_warning">Предупреждение</string>
     <string name="app_permission">Вы должны предоставить разрешение что-бы использовать эту функцию.</string>
     <string name="list_empty">Пустой лист</string>
     <string name="album_title_bookmarks">Закладки</string>
@@ -72,7 +71,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">AdBlock</string>
     <string name="setting_title_location">Местоположение</string>
-    <string name="data_summary">Все файлы будут сохранены в каталог «Documents / browser_backup /» вашей SD-карты.</string>
     <string name="clear_title_quit">Очистить при выходе</string>
     <string name="clear_title_cache">Очистить кэш</string>
     <string name="setting_title_ui">Поведение и интерфейс</string>
@@ -112,7 +110,6 @@
     <string name="toast_quit">Выйти из \"FOSS Browser\"?</string>
     <string name="toast_quit_TAB">Закрыть вкладку?</string>
     <string name="toast_unsecured">Сайт использует незащищенное соединение (\"http\"). Попробовать безопасное соединение (\"https\")?</string>
-    <string name="toast_backup">Резервное копирование данных\? Это приведет к перезаписи существующей резервной копии.</string>
     <string name="dialog_postOnWebsiteHint">URL для открытия. Будет сохранен для следующего использования.</string>
     <string name="dialog_postOnWebsite">Разместить на сайте</string>
     <string name="menu_desktopView">Десктопный вид</string>
@@ -147,7 +144,6 @@
     <string name="album_title_bookmarks_html">Закладки (HTML)</string>
     <string name="setting_title_savedWebSites">Сохраненные веб-сайты</string>
     <string name="setting_title_dynColors">Динамические цвета</string>
-    <string name="setting_backup_ext">Резервное копирование при выходе</string>
     <string name="setting_backup_sumDatabase">Стартсайт, Закладки, история</string>
     <string name="setting_backup_sumSettings">Настройки приложений и веб-сайтов</string>
     <string name="privacy_redirect_use">Используйте перенаправления</string>

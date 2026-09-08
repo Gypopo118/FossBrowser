@@ -1,101 +1,59 @@
 package de.baumann.browser.fragment;
 
 import static android.content.ContentValues.TAG;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-
+import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceManager;
-
 import java.util.Objects;
-
 import de.baumann.browser.R;
-import de.baumann.browser.activity.Settings_Backup;
-import de.baumann.browser.activity.Settings_Delete;
-import de.baumann.browser.activity.Settings_Filter;
-import de.baumann.browser.activity.Settings_Gesture;
-import de.baumann.browser.activity.Settings_Menu;
-import de.baumann.browser.activity.Settings_Profile;
-import de.baumann.browser.activity.Settings_ProfileList;
+import de.baumann.browser.activity.*;
 import de.baumann.browser.browser.AdBlock;
 import de.baumann.browser.preferences.BasePreferenceFragment;
-import de.baumann.browser.view.NinjaToast;
 
 public class Fragment_settings extends BasePreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private Preference sp_ad_block;
+    private SharedPreferences sp;
+
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-
         setPreferencesFromResource(R.xml.preference_setting, rootKey);
-        Context context = getContext();
-        assert context != null;
+        Context context = requireContext();
+        sp = PreferenceManager.getDefaultSharedPreferences(context);
+
         initSummary(getPreferenceScreen());
 
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         sp_ad_block = findPreference("ab_hosts");
-        assert sp_ad_block != null;
-        sp_ad_block.setSummary(AdBlock.getHostsDate(getContext()));
+        if (sp_ad_block != null) sp_ad_block.setSummary(AdBlock.getHostsDate(context));
 
-        Preference settings_profile = findPreference("settings_profile");
-        assert settings_profile != null;
-        settings_profile.setOnPreferenceClickListener(preference -> {
-            Intent intent = new Intent(getActivity(), Settings_Profile.class);
-            requireActivity().startActivity(intent);
-            return false;
-        });
+        setClick("settings_profile", Settings_Profile.class);
+        setClick("settings_menu", Settings_Menu.class);
+        setClick("settings_filter", Settings_Filter.class);
+        setClick("settings_data", Settings_Backup.class);
+        setClick("settings_gesture", Settings_Gesture.class);
+        setClick("settings_clear", Settings_Clear.class);
+
         Preference edit_standard = findPreference("edit_standard");
-        assert edit_standard != null;
-        edit_standard.setOnPreferenceClickListener(preference -> {
-            sp.edit().putString("listToLoad", "standard").apply();
-            Intent intent = new Intent(getActivity(), Settings_ProfileList.class);
-            requireActivity().startActivity(intent);
-            return false;
-        });
+        if (edit_standard != null) {
+            edit_standard.setOnPreferenceClickListener(p -> {
+                sp.edit().putString("listToLoad", "standard").apply();
+                startActivity(new Intent(getActivity(), Settings_ProfileList.class));
+                return false;
+            });
+        }
+    }
 
-        Preference settings_menu = findPreference("settings_menu");
-        assert settings_menu != null;
-        settings_menu.setOnPreferenceClickListener(preference -> {
-            Intent intent = new Intent(getActivity(), Settings_Menu.class);
-            requireActivity().startActivity(intent);
-            return false;
-        });
-
-        Preference settings_filter = findPreference("settings_filter");
-        assert settings_filter != null;
-        settings_filter.setOnPreferenceClickListener(preference -> {
-            Intent intent = new Intent(getActivity(), Settings_Filter.class);
-            requireActivity().startActivity(intent);
-            return false;
-        });
-
-        Preference settings_data = findPreference("settings_data");
-        assert settings_data != null;
-        settings_data.setOnPreferenceClickListener(preference -> {
-            Intent intent = new Intent(getActivity(), Settings_Backup.class);
-            requireActivity().startActivity(intent);
-            return false;
-        });
-
-        Preference settings_gesture = findPreference("settings_gesture");
-        assert settings_gesture != null;
-        settings_gesture.setOnPreferenceClickListener(preference -> {
-            Intent intent = new Intent(getActivity(), Settings_Gesture.class);
-            requireActivity().startActivity(intent);
-            return false;
-        });
-
-        Preference settings_clear = findPreference("settings_clear");
-        assert settings_clear != null;
-        settings_clear.setOnPreferenceClickListener(preference -> {
-            Intent intent = new Intent(getActivity(), Settings_Delete.class);
-            requireActivity().startActivity(intent);
+    private void setClick(String key, Class<?> cls) {
+        Preference p = findPreference(key);
+        if (p != null) p.setOnPreferenceClickListener(pref -> {
+            startActivity(new Intent(getActivity(), cls));
             return false;
         });
     }
@@ -107,53 +65,40 @@ public class Fragment_settings extends BasePreferenceFragment implements SharedP
                 initSummary(pGrp.getPreference(i));
             }
         } else {
-            try {updatePrefSummary(p);}
-            catch (Exception e) {Log.i(TAG, "Settings:" + e);}
+            try { updatePrefSummary(p); }
+            catch (Exception e) { Log.i(TAG, "Settings:" + e); }
         }
     }
 
     private void updatePrefSummary(Preference p) {
+        if (p == null) return;
+
+        if (p instanceof EditTextPreference) {
+            p.setSummaryProvider(pref -> {
+                String text = ((EditTextPreference) pref).getText();
+                return (text == null || text.trim().isEmpty()) ? getString(R.string.toast_input_empty) : text;
+            });
+        }
 
         if (p instanceof ListPreference) {
             ListPreference listPref = (ListPreference) p;
             if (p.getSummaryProvider() == null) p.setSummary(listPref.getEntry());
-            sp_ad_block.setSummary(AdBlock.getHostsDate(requireContext()));
+            if (sp_ad_block != null) sp_ad_block.setSummary(AdBlock.getHostsDate(requireContext()));
         }
 
-        Context context = getContext();
-        assert context != null;
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        boolean customSE = sp.getBoolean("searchEngineSwitch", false);
-
-        boolean useDynamicColor = sp.getBoolean("useDynamicColor", false);
-        ListPreference theme;
-        theme = findPreference("sp_theme");
-        assert theme != null;
-        theme.setEnabled(useDynamicColor);
-
-        ListPreference searchEngines;
-        searchEngines= findPreference("sp_search_engine");
-        assert searchEngines != null;
-        String customSearchEngine = sp.getString("sp_search_engine_custom", "");
-        String text = getString(R.string.setting_title_searchEngine) + ": " + getString(R.string.toast_input_empty);
-        if(customSE) {
-            searchEngines.setEnabled(false);
-            if (customSearchEngine.isEmpty()) {
-                NinjaToast.show(context, text);
-            }
-        } else {
-            searchEngines.setEnabled(true);
-        }
+        ListPreference theme = findPreference("sp_theme");
+        if (theme != null) theme.setEnabled(sp.getBoolean("useDynamicColor", false));
     }
 
     @Override
-    public void onSharedPreferenceChanged(final SharedPreferences sp, String key) {
-        assert key != null;
+    public void onSharedPreferenceChanged(final SharedPreferences sharedPreferences, String key) {
+        if (key == null) return;
         updatePrefSummary(findPreference(key));
+
         if (key.equals("sp_ad_block") || key.equals("ab_hosts")) {
             AdBlock.downloadHosts(getActivity());
         }
-        if ( key.equals("sp_theme") || key.equals("useDynamicColor")) {
+        if (key.equals("sp_theme") || key.equals("useDynamicColor")) {
             sp.edit().putInt("restart_changed", 1).apply();
             updatePrefSummary(findPreference(key));
         }

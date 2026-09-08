@@ -86,11 +86,13 @@
     <string-array name="setting_entries_tab">
         <item>@string/album_title_bookmarks</item>
         <item>@string/album_title_history</item>
+        <item>@string/album_title_tab</item>
     </string-array>
 
     <string-array name="setting_values_tab">
         <item>3</item>
         <item>4</item>
+        <item>5</item>
     </string-array>
 
     <!-- Themes -->

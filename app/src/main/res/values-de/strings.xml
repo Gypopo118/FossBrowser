@@ -6,7 +6,6 @@
     <string name="app_cancel">Abbrechen</string>
     <string name="app_done">Fertig</string>
     <string name="app_error">Fehler</string>
-    <string name="app_warning">Warnung</string>
     <string name="app_permission">Für diese Funktion ist eine Berechtigung erforderlich.</string>
     <string name="list_empty">Leere Liste</string>
     <string name="album_title_bookmarks">Lesezeichen</string>
@@ -72,7 +71,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">AdBlock</string>
     <string name="setting_title_location">Standortbestimmung</string>
-    <string name="data_summary">Alle Dateien werden im Verzeichnis \"Documents/browser_backup/\" Ihrer SD-Karte gespeichert.</string>
     <string name="clear_title_quit">Beim Verlassen löschen</string>
     <string name="clear_title_cache">Cache löschen</string>
     <string name="setting_title_ui">Verhalten/Oberfläche</string>
@@ -112,7 +110,6 @@
     <string name="toast_quit">\"FOSS Browser\" beenden?</string>
     <string name="toast_quit_TAB">Tab schließen?</string>
     <string name="toast_unsecured">Diese Website benutzt eine ungesicherte Verbindung (\"http\"). Möchtest du eine sichere Verbindung (\"https\") versuchen?</string>
-    <string name="toast_backup">Daten sichern\? Das überschreibt die bestehende Sicherung.</string>
     <string name="dialog_postOnWebsiteHint">Zu öffnende URL. Wird für die nächste Verwendung gespeichert.</string>
     <string name="dialog_postOnWebsite">Auf Webseite posten</string>
     <string name="menu_desktopView">Desktop-Ansicht</string>
@@ -145,7 +142,6 @@
     <string name="app_session">… in dieser Sitzung?</string>
     <string name="app_permission_notification">Benachrichtigungen</string>
     <string name="setting_title_savedWebSites">Gespeicherte Internetseiten</string>
-    <string name="setting_backup_ext">Beim Verlassen sichern</string>
     <string name="setting_backup_sumDatabase">Startseite, Lesezeichen, Verlauf</string>
     <string name="album_title_bookmarks_html">Lesezeichen (HTML)</string>
     <string name="setting_backup_sumSettings">Anwendungs- und Internetseiteneinstellungen</string>

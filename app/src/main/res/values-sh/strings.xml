@@ -6,7 +6,6 @@
     <string name="app_cancel">Otkaži</string>
     <string name="app_done">Gotovo</string>
     <string name="app_error">Greška</string>
-    <string name="app_warning">Upozorenje</string>
     <string name="app_permission">Da biste koristili ovu odliku, morate dati dozvolu. Poslije toga ponovo pokrenite aplikaciju.</string>
     <string name="list_empty">Spisak je prazan</string>
     <string name="album_title_bookmarks">Bilješci</string>
@@ -70,7 +69,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">AdBlock</string>
     <string name="setting_title_location">Lokacija</string>
-    <string name="data_summary">Sve datoteke će biti izvezene u direktorij \"Documents/browser_backup/\" na vašoj SD kartici.</string>
     <string name="clear_title_quit">Očistite pri izlazku iz aplikacije</string>
     <string name="clear_title_cache">Očisti Skladište</string>
     <string name="setting_title_ui">Ponašanje/UI</string>
@@ -110,7 +108,6 @@
     <string name="toast_quit">Da li želite zatvoriti \"FOSS Preglednik\"?</string>
     <string name="toast_quit_TAB">Želite li zatvoriti KARTICU?</string>
     <string name="toast_unsecured">Web stranica koristi nezaštićenu vezu (\"http\"). Želite li isprobati sigurnu vezu (\"https\")?</string>
-    <string name="toast_backup">Sigurnosno kopirajte podatke\? Ovo će prepisati staru sigurnosnu kopiju.</string>
     <string name="dialog_postOnWebsiteHint">URL za otvaranje. Biće sačuvan za sljedeću upotrebu.</string>
     <string name="dialog_postOnWebsite">Objavite na web stranici</string>
     <string name="menu_desktopView">Veliki prikaz</string>

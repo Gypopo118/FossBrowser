@@ -21,57 +21,53 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Locale;
 
 import de.baumann.browser.R;
 import de.baumann.browser.database.FaviconHelper;
 import de.baumann.browser.database.Record;
 import de.baumann.browser.unit.HelperUnit;
 
-
 public class AdapterSearch extends BaseAdapter implements Filterable {
     private final Context context;
     private final int layoutResId;
-    private final List<CompleteItem> originalList;
+    private final List<CompleteItem> originalList = new ArrayList<>();
     private final CompleteFilter filter = new CompleteFilter();
-    private List<CompleteItem> resultList;
-    private int count;
+    private final SharedPreferences sp;
+    private final FaviconHelper faviconHelper;
+    private final int cardBackgroundColor;
+    private List<CompleteItem> resultList = new ArrayList<>();
 
     public AdapterSearch(Context context, int layoutResId, List<Record> recordList) {
         this.context = context;
         this.layoutResId = layoutResId;
-        this.originalList = new ArrayList<>();
-        this.resultList = new ArrayList<>();
+        this.sp = PreferenceManager.getDefaultSharedPreferences(context);
+        this.faviconHelper = new FaviconHelper(context);
+
+        TypedValue typedValue = new TypedValue();
+        context.getTheme().resolveAttribute(R.attr.colorSurfaceContainerHighest, typedValue, true);
+        this.cardBackgroundColor = typedValue.data;
+
         getRecordList(recordList);
     }
 
     private void getRecordList(List<Record> recordList) {
+        if (recordList == null) return;
+
+        HashSet<CompleteItem> uniqueItems = new HashSet<>();
         for (Record record : recordList) {
-            if (record.getTitle() != null
-                    && !record.getTitle().isEmpty()
-                    && record.getURL() != null
-                    && !record.getURL().isEmpty()) {
-                originalList.add(new CompleteItem(record.getTitle(), record.getURL()));
+            String title = record.getTitle();
+            String url = record.getURL();
+            if (title != null && !title.isEmpty() && url != null && !url.isEmpty()) {
+                uniqueItems.add(new CompleteItem(title, url));
             }
         }
-
-        Set<CompleteItem> set = new HashSet<>(originalList);
-        originalList.clear();
-        originalList.addAll(set);
+        originalList.addAll(uniqueItems);
     }
 
     @Override
     public int getCount() {
-        if (count > 0) {
-            return resultList.size();
-        } else {
-            return 0;
-        }
-    }
-
-    @Override
-    public Filter getFilter() {
-        return filter;
+        return resultList.size();
     }
 
     @Override
@@ -85,12 +81,17 @@ public class AdapterSearch extends BaseAdapter implements Filterable {
     }
 
     @Override
+    public Filter getFilter() {
+        return filter;
+    }
+
+    @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View view = convertView;
         Holder holder;
 
         if (view == null) {
-            view = LayoutInflater.from(context).inflate(layoutResId, null, false);
+            view = LayoutInflater.from(context).inflate(layoutResId, parent, false);
             holder = new Holder();
             holder.titleView = view.findViewById(R.id.titleView);
             holder.urlView = view.findViewById(R.id.dateView);
@@ -104,70 +105,55 @@ public class AdapterSearch extends BaseAdapter implements Filterable {
         CompleteItem item = resultList.get(position);
         holder.titleView.setText(item.title);
         holder.urlView.setText(item.url);
+        holder.albumCardView.setCardBackgroundColor(cardBackgroundColor);
 
-        TypedValue typedValue = new TypedValue();
-        context.getTheme().resolveAttribute(R.attr.colorSurfaceContainerHighest, typedValue, true);
-        int color = typedValue.data;
-        holder.albumCardView.setCardBackgroundColor(color);
-
-        try(FaviconHelper faviconHelper = new FaviconHelper(context)) {
+        try {
             Bitmap bitmap = faviconHelper.getFavicon(item.url);
-            if (bitmap != null) {
+            if (bitmap != null && !bitmap.isRecycled()) {
                 holder.favicon.setImageBitmap(bitmap);
             } else {
                 holder.favicon.setImageResource(R.drawable.icon_image_broken);
             }
+        } catch (Exception e) {
+            holder.favicon.setImageResource(R.drawable.icon_image_broken);
         }
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+
         String s = sp.getString("searchInput", "");
         if (!s.isEmpty()) {
             HelperUnit.setHighLightedTextSearch(context, holder.urlView, s);
             HelperUnit.setHighLightedTextSearch(context, holder.titleView, s);
         }
+
         return view;
     }
 
     private static class CompleteItem {
         private final String title;
         private final String url;
+        private final String lowerTitle;
+        private final String lowerUrl;
         private int index = Integer.MAX_VALUE;
 
         private CompleteItem(String title, String url) {
             this.title = title;
             this.url = url;
+            this.lowerTitle = title.toLowerCase(Locale.ROOT);
+            this.lowerUrl = url.toLowerCase(Locale.ROOT);
         }
 
-        String getTitle() {
-            return title;
-        }
-
-        String getURL() {
-            return url;
-        }
-
-        int getIndex() {
-            return index;
-        }
-
-        void setIndex(int index) {
-            this.index = index;
-        }
+        int getIndex() { return index; }
+        void setIndex(int index) { this.index = index; }
 
         @Override
         public boolean equals(Object object) {
-            if (!(object instanceof CompleteItem)) {
-                return false;
-            }
+            if (!(object instanceof CompleteItem)) return false;
             CompleteItem item = (CompleteItem) object;
-            return item.getTitle().equals(title) && item.getURL().equals(url);
+            return item.title.equals(title) && item.url.equals(url);
         }
 
         @Override
         public int hashCode() {
-            if (title == null || url == null) {
-                return 0;
-            }
-            return title.hashCode() & url.hashCode();
+            return title.hashCode() ^ url.hashCode();
         }
     }
 
@@ -181,23 +167,31 @@ public class AdapterSearch extends BaseAdapter implements Filterable {
     private class CompleteFilter extends Filter {
         @Override
         protected FilterResults performFiltering(CharSequence prefix) {
-            if (prefix == null) {
-                return new FilterResults();
+            FilterResults results = new FilterResults();
+            if (prefix == null || prefix.length() == 0) {
+                results.values = new ArrayList<>();
+                results.count = 0;
+                return results;
             }
 
+            String searchStr = prefix.toString().toLowerCase(Locale.ROOT);
             List<CompleteItem> workList = new ArrayList<>();
+
             for (CompleteItem item : originalList) {
-                if (item.getTitle().contains(prefix) || item.getTitle().toLowerCase().contains(prefix) || item.getURL().contains(prefix)) {
-                    if (item.getTitle().contains(prefix) || item.getTitle().toLowerCase().contains(prefix)) {
-                        item.setIndex(item.getTitle().indexOf(prefix.toString()));
-                    } else if (item.getURL().contains(prefix)) {
-                        item.setIndex(item.getURL().indexOf(prefix.toString()));
+                boolean matchesTitle = item.lowerTitle.contains(searchStr);
+                boolean matchesUrl = item.lowerUrl.contains(searchStr);
+
+                if (matchesTitle || matchesUrl) {
+                    if (matchesTitle) {
+                        item.setIndex(item.lowerTitle.indexOf(searchStr));
+                    } else {
+                        item.setIndex(item.lowerUrl.indexOf(searchStr));
                     }
                     workList.add(item);
                 }
             }
-            workList.sort(Comparator.comparingInt(CompleteItem::getIndex));
-            FilterResults results = new FilterResults();
+            workList.sort(Comparator.comparingInt(CompleteItem::getIndex).reversed());
+
             results.values = workList;
             results.count = workList.size();
             return results;
@@ -206,13 +200,11 @@ public class AdapterSearch extends BaseAdapter implements Filterable {
         @SuppressWarnings("unchecked")
         @Override
         protected void publishResults(CharSequence constraint, FilterResults results) {
-            count = results.count;
-            if (results.count > 0) {
-                // The API returned at least one result, update the data.
+            if (results != null && results.count > 0) {
                 resultList = (List<CompleteItem>) results.values;
                 notifyDataSetChanged();
             } else {
-                // The API did not return any results, invalidate the data set.
+                resultList = new ArrayList<>();
                 notifyDataSetInvalidated();
             }
         }

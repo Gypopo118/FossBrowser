@@ -6,7 +6,6 @@
     <string name="app_cancel">Batal</string>
     <string name="app_done">Selesai</string>
     <string name="app_error">Kesalahan</string>
-    <string name="app_warning">Peringatan</string>
     <string name="app_permission">Untuk menggunakan fitur ini Anda harus memberikan izin. Setelah itu mulai ulang aplikasi.</string>
     <string name="list_empty">Daftar kosong</string>
     <string name="album_title_bookmarks">Bookmark</string>
@@ -71,7 +70,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">AdBlock</string>
     <string name="setting_title_location">Lokasi</string>
-    <string name="data_summary">Seluruh file akan di ekspor ke direktori \"Documents/browser_backup/\" di SD-card Anda.</string>
     <string name="clear_title_quit">Bersihkan pada saat keluar aplikasi</string>
     <string name="clear_title_cache">Bersihkan Cache</string>
     <string name="setting_title_ui">Perilaku/UI</string>
@@ -111,7 +109,6 @@
     <string name="toast_quit">Apakah Anda ingin keluar \"FOSS Browser\"?</string>
     <string name="toast_quit_TAB">Apakah Anda ingin menutup TAB?</string>
     <string name="toast_unsecured">Situs web menggunakan koneksi yang tidak aman (\"http\"). Coba koneksi aman (\"https\")?</string>
-    <string name="toast_backup">Backup data\? Ini akan menimpa cadangan yang ada.</string>
     <string name="dialog_postOnWebsiteHint">URL untuk membuka. Akan disimpan untuk penggunaan berikutnya.</string>
     <string name="dialog_postOnWebsite">Posting di situs web</string>
     <string name="menu_desktopView">Tampilan desktop</string>
@@ -147,7 +144,6 @@
     <string name="album_title_bookmarks_html">Penanda (HTML)</string>
     <string name="setting_title_savedWebSites">Situs web yang disimpan</string>
     <string name="setting_title_dynColors">Warna yang dinamis</string>
-    <string name="setting_backup_ext">Pencadangan saat keluar</string>
     <string name="setting_backup_sumSettings">Pengaturan aplikasi dan situs web</string>
     <string name="privacy_redirect_use">Gunakan pengalihan</string>
     <string name="privacy_redirect_title">Pengalihan</string>

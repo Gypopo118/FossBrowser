@@ -6,7 +6,6 @@
     <string name="app_cancel">Anuluj</string>
     <string name="app_done">Gotowe</string>
     <string name="app_error">Błąd</string>
-    <string name="app_warning">Ostrzeżenie</string>
     <string name="app_permission">Aby korzystać z tej funkcji musisz udzielić pozwolenia. Po tym należy ponownie uruchomić aplikację.</string>
     <string name="list_empty">Lista jest pusta</string>
     <string name="album_title_bookmarks">Zakładki</string>
@@ -72,7 +71,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">AdBlock</string>
     <string name="setting_title_location">Lokalizacja</string>
-    <string name="data_summary">Wszystkie pliki zostaną wyeksportowane do katalogu „Documents/browser_backup/” na karcie SD.</string>
     <string name="clear_title_quit">Wymaż na zamknięciu</string>
     <string name="clear_title_cache">Wymaż dane podręczne</string>
     <string name="setting_title_ui">Zachowanie i wygląd</string>
@@ -112,7 +110,6 @@
     <string name="toast_quit">Zamknąć \"FOSS Browser\"?</string>
     <string name="toast_quit_TAB">Czy chcesz zamknąć TAB?</string>
     <string name="toast_unsecured">Ta witryna używa nieszyfrowanego połączenia (\"http\"). Spróbować przejść na szyfrowane (\"https\")?</string>
-    <string name="toast_backup">Kopia zapasowa danych\? Spowoduje to nadpisanie istniejącej kopii zapasowej.</string>
     <string name="dialog_postOnWebsiteHint">Adres URL do otwarcia. Zostanie zachowany do następnego użycia.</string>
     <string name="dialog_postOnWebsite">Umieść na stronie internetowej</string>
     <string name="menu_desktopView">Widok pulpitu</string>
@@ -151,7 +148,6 @@
     <string name="privacy_redirect_use">Używanie przekierowań</string>
     <string name="privacy_redirect_title">Przekierowania</string>
     <string name="setting_title_savedWebSites">Zapisane strony internetowe</string>
-    <string name="setting_backup_ext">Kopia zapasowa przy wyjściu</string>
     <string name="setting_title_profiles_standard_always">Przełącz na profil standardowy dla nowych domen i zakładek.</string>
     <string name="app_restart">Po ponownym uruchomieniu</string>
     <string name="setting_menu">Menu</string>

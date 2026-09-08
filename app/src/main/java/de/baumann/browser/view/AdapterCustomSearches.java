@@ -4,8 +4,8 @@ import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +15,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -90,13 +89,29 @@ public class AdapterCustomSearches extends RecyclerView.Adapter<RedirectsViewHol
         });
         holder.itemView.setOnClickListener(v -> {
             NinjaWebView.getBrowserController().hideSearch();
-            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-            sp.edit().putString("sp_search_customSearches", current.getTarget()).apply();
-            String t = BrowserUnit.queryWrapper(context, url);
-
-            if (BrowserUnit.isURL(t)) {
-                BrowserUnit.intentURL(context, Uri.parse(t));
-                sp.edit().putString("sp_search_customSearches", "").apply();
+            // 1. Hole die Custom-Such-URL (z.B. "https://duckduckgo.com")
+            String targetUrl = current.getTarget();
+            if (targetUrl == null || targetUrl.isEmpty()) return;
+            // 2. Den eingegebenen Text für URLs sicher codieren (Satzzeichen, Leerzeichen, Absätze)
+            String encodedQuery;
+            try {
+                encodedQuery = java.net.URLEncoder.encode(url, "UTF-8");
+            } catch (java.io.UnsupportedEncodingException e) {
+                Log.e("CustomSearch", "Encoding failed", e);
+                encodedQuery = url; // Fallback
+            }
+            // 3. Die finale URL zusammenbauen
+            String finalUrl;
+            if (targetUrl.contains("%s")) {
+                // Falls deine Custom-URL ein %s als Platzhalter nutzt
+                finalUrl = targetUrl.replace("%s", encodedQuery);
+            } else {
+                // Falls der Suchbegriff einfach hinten angehängt werden soll
+                finalUrl = targetUrl + encodedQuery;
+            }
+            // 4. Die URL im Browser öffnen
+            if (BrowserUnit.isURL(finalUrl)) {
+                BrowserUnit.intentURL(context, Uri.parse(finalUrl));
             } else {
                 NinjaToast.show(BrowserActivity.getAppContext(), R.string.app_error);
             }

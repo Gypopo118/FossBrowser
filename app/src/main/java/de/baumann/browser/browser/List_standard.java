@@ -51,12 +51,4 @@ public class List_standard {
         action.close();
         listStandard.remove(domain);
     }
-
-    public synchronized void clearDomains() {
-        RecordAction action = new RecordAction(context);
-        action.open(true);
-        action.clearTable(RecordUnit.TABLE_STANDARD);
-        action.close();
-        listStandard.clear();
-    }
 }

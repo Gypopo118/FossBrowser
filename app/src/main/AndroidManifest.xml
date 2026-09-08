@@ -5,21 +5,28 @@
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.RECORD_VIDEO" tools:ignore="SystemPermissionTypo" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission
-        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" />
-
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="http" />
+        </intent>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+    </queries>
 
     <application
         android:allowBackup="true"
@@ -27,13 +34,13 @@
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:supportsRtl="true"
-        android:usesCleartextTraffic="false"
+        android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="de.baumann.browser.fileprovider"
+            android:authorities="${applicationId}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
@@ -41,44 +48,35 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- Zentraler Opt-Out für WebView-Metriken auf Anwendungsebene -->
         <meta-data
             android:name="android.webkit.WebView.MetricsOptOut"
             android:value="true" />
 
-        <!--
-          Haupt-Browser-Activity
-          WICHTIG ab Android 12: windowSoftInputMode="adjustResize" ist der moderne Standard,
-          da "adjustPan" das Layout oft unkontrolliert verschiebt und Eingabefelder verdeckt.
-        -->
         <activity
             android:name="de.baumann.browser.activity.BrowserActivity"
-            android:configChanges="orientation|uiMode|screenSize|smallestScreenSize|screenLayout"
-            android:windowSoftInputMode="adjustResize"
-            android:fitsSystemWindows="false"
+            android:configChanges="orientation|uiMode|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:fitsSystemWindows="true"
             android:exported="true"
             android:launchMode="singleTask">
-
+            <!-- 1. FILTER: Text- und Code-Dateien (z.B. aus File-Managern) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <!-- Fängt jede Form von Text- und Code-Struktur ab (inkl. .txt, .html etc.) -->
                 <data android:mimeType="text/*" />
-                <!-- Sicherheitsnetz für Dateimanager, die JSON/XML als App-Typ statt Text deklarieren -->
                 <data android:mimeType="application/json" />
                 <data android:mimeType="application/xml" />
             </intent-filter>
 
-            <!-- 2. FILTER: Fängt alle anderen Dateien (inkl. .org) ab, bei denen der Mime-Type unbekannt ist -->
-            <intent-filter tools:ignore="AppLinkUrlError">
+            <!-- 3. FILTER: Speziell für Web-Links (HTTP/HTTPS) -->
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:scheme="content" />
-                <data android:scheme="file" />
-                <!-- Verpflichtend, damit Android die URI unabhängig vom Namen an die App übergibt -->
-                <data android:mimeType="*/*" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <!-- Optional: Falls die App nur auf bestimmte Domains reagieren soll, hier 'android:host' ergänzen -->
             </intent-filter>
 
             <!-- Text über das Android 'Teilen'-Menü empfangen -->
@@ -137,12 +135,12 @@
         -->
         <activity android:name="de.baumann.browser.activity.Settings_Activity" android:label="@string/setting_title_browser" android:exported="false" />
         <activity android:name="de.baumann.browser.activity.Settings_ProfileList" android:label="@string/setting_title_savedWebSites" android:exported="false" />
-        <activity android:name="de.baumann.browser.activity.Settings_Delete" android:label="@string/menu_delete" android:exported="false" />
         <activity android:name="de.baumann.browser.activity.Settings_Backup" android:label="@string/setting_title_data" android:exported="false" />
         <activity android:name="de.baumann.browser.activity.Settings_Gesture" android:label="@string/setting_gestures" android:exported="false" />
         <activity android:name="de.baumann.browser.activity.Settings_Filter" android:label="@string/setting_filter" android:exported="false" />
         <activity android:name="de.baumann.browser.activity.Settings_Profile" android:label="@string/setting_title_profiles_standard" android:exported="false" />
         <activity android:name="de.baumann.browser.activity.Settings_Menu" android:label="@string/setting_menu" android:exported="false" />
+        <activity android:name="de.baumann.browser.activity.Settings_Clear" android:label="@string/menu_delete" android:exported="false" />
 
     </application>
 

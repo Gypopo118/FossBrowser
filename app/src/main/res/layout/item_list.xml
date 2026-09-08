@@ -56,12 +56,12 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:id="@+id/textGroup"
                 android:orientation="vertical"
                 android:layout_toEndOf="@id/item_cardView"
                 android:layout_toStartOf="@id/iconView"
-                android:gravity="center_vertical"
+                android:layout_centerInParent="true"
                 android:layout_marginBottom="5dp"
                 android:layout_marginTop="5dp"
                 android:layout_marginStart="10dp"
@@ -73,8 +73,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="2dp"
                     android:ellipsize="end"
-                    android:includeFontPadding="false"
                     android:maxLines="1"
+                    android:scrollHorizontally="true"
+                    android:includeFontPadding="false"
                     android:textStyle="bold"
                     android:textAppearance="?attr/textAppearanceBodyMedium" />
 
@@ -83,8 +84,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
-                    android:includeFontPadding="false"
                     android:maxLines="1"
+                    android:scrollHorizontally="true"
+                    android:includeFontPadding="false"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOutline" />
 

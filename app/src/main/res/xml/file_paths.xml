@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <!-- Ermöglicht der Kamera das Speichern im externen Cache-Verzeichnis -->
-    <external-cache-path name="camera_photos" path="." />
+    <cache-path name="internal_cache_files" path="." />
 </paths>

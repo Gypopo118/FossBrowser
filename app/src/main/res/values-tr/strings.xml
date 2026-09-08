@@ -6,7 +6,6 @@
     <string name="app_cancel">İptal et</string>
     <string name="app_done">Tamam</string>
     <string name="app_error">Hata</string>
-    <string name="app_warning">Uyarı</string>
     <string name="app_permission">Bu özelliği kullanmak için izin vermelisiniz. Daha sonra uygulamayı yeniden başlatın.</string>
     <string name="list_empty">Liste boş</string>
     <string name="album_title_bookmarks">Yer işaretleri</string>
@@ -72,7 +71,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">Reklam engelleyici</string>
     <string name="setting_title_location">Konum</string>
-    <string name="data_summary">Tüm dosyalar cihazın \"Documents/browser_backup/\" dizinine aktarılacaktır.</string>
     <string name="clear_title_quit">Tarayıcıdan çıkarken temizle</string>
     <string name="clear_title_cache">Önbelleği temizle</string>
     <string name="setting_title_ui">Davranış | Kullanıcı arayüzü</string>
@@ -112,7 +110,6 @@
     <string name="toast_quit">\"FOSS Tarayıcı\"sından çıkmak istiyor musunuz?</string>
     <string name="toast_quit_TAB">Sekmeyi kapatmak istiyor musunuz?</string>
     <string name="toast_unsecured">Web sitesi güvenli olmayan bir bağlantı (\"http\") kullanıyor. Güvenli bir bağlantı (\"https\") denensin mi?</string>
-    <string name="toast_backup">Yedek veri mi\? Bu, mevcut yedeklemenin üzerine yazacaktır.</string>
     <string name="dialog_postOnWebsiteHint">Açılacak URL\'yi seçin. Bir sonraki kullanım için kaydedilecektir.</string>
     <string name="dialog_postOnWebsite">Web sitesinde yayınla</string>
     <string name="menu_desktopView">Masaüstü görünümü</string>
@@ -147,7 +144,6 @@
     <string name="album_title_bookmarks_html">Yer İmleri (HTML)</string>
     <string name="setting_title_savedWebSites">Kaydedilen web siteleri</string>
     <string name="setting_title_dynColors">Dinamik renkler</string>
-    <string name="setting_backup_ext">Çıkışta yedekleme</string>
     <string name="privacy_redirect_title">Yönlendirmeler</string>
     <string name="setting_backup_sumDatabase">Başlangıç Sitesi, Yer İmleri, Geçmiş</string>
     <string name="setting_backup_sumSettings">Uygulama ve web sitesi ayarları</string>

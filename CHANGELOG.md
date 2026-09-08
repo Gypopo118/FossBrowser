@@ -1,18 +1,28 @@
-### v 24 (WIP)
+### v 24 Clara Gertrud Wichmann
 
-- improved: default standard profile settings
-- improved: AdBlock download
-- improved: snackbar with clickable link
-- improved: download of blob:/data:-files
-- improved: app bar
-- improved: search bar
-- improved: gesture settings
-- improved: menu settings
-- improved: search providers
-- improved: file chooser
+*Clara Gertrud Wichmann, also known by the name Clara Meijer-Wichmann, (August 17, 1885 in Hamburg – February 15, 1922 in The Hague) was a German lawyer, journalist, pacifist, and representative of anarcho-syndicalism.*
+
+- fix: Show on Start - Opened Tabs #1293
+- new: mind SDK 29
+- new: camera in file chooser
+- new: open all kind of text based files
+- new: open text files
+- updated: default standard profile settings
+- updated: AdBlock download
+- updated: snackbar with clickable link
+- updated: download of blob:/data:-files
+- updated: app bar
+- updated: search bar
+- updated: gesture settings
+- updated: menu settings
+- updated: search providers
+- updated: icons, themes
 - updated: WIKI + help links in app
 - updated: translations
-- new: open text files
+- updated: backup settings
+- updated: delete settings
+- updated: permission requests
+- removed: all storage permissions
 
 
 ### v 23 Harriet Tubman

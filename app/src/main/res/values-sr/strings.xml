@@ -6,7 +6,6 @@
     <string name="app_cancel">Откажи</string>
     <string name="app_done">Готово</string>
     <string name="app_error">Грешка</string>
-    <string name="app_warning">Упозорење</string>
     <string name="app_permission">Да бисте користили ову функцију морате дати дозволу. Након тога поново покрените апликацију.</string>
     <string name="list_empty">Списак је празан</string>
     <string name="album_title_bookmarks">Забелешке</string>
@@ -72,7 +71,6 @@
     <string name="setting_title_javascript">Џава-скрипт</string>
     <string name="setting_title_adblock">Блокер реклама</string>
     <string name="setting_title_location">Локација</string>
-    <string name="data_summary">Све датотеке биће извезене у фасцикли \"Documents/browser_backup/\" на СД картици.</string>
     <string name="clear_title_quit">Бриши при затварању</string>
     <string name="clear_title_cache">Очисти кеш</string>
     <string name="setting_title_ui">Понашање/сучеље</string>
@@ -112,7 +110,6 @@
     <string name="toast_quit">Да ли желите да затворите „ФОСС претраживач“?</string>
     <string name="toast_quit_TAB">Да ли желите да затворите КАРТИЦУ?</string>
     <string name="toast_unsecured">Веб страница користи небезбедну везу („хттп“). Зелите ли покушати са безбедном везом („хттпс“)?</string>
-    <string name="toast_backup">Сигурносно копирајте податке\? Ово ће преписати стару резервну копију.</string>
     <string name="dialog_postOnWebsiteHint">Урл за отварање. Биће сачуван за следећу употребу.</string>
     <string name="dialog_postOnWebsite">Објавите на веб страници</string>
     <string name="menu_desktopView">Велики приказ</string>
@@ -148,7 +145,6 @@
     <string name="privacy_redirect_title">Преусмерава</string>
     <string name="setting_title_profiles_standard_always">Пређите на стандардни профил за нове домене и картице.</string>
     <string name="setting_title_cookie_thirdParty">Колачићи трећих страна</string>
-    <string name="setting_backup_ext">Сигурна копија при изласку</string>
     <string name="setting_backup_sumDatabase">Почетна страница, Ознаке, Историја</string>
     <string name="setting_backup_sumSettings">Подешавања апликације и веб-сајта</string>
     <string name="title_appDatabase">База података</string>

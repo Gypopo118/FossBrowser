@@ -6,7 +6,6 @@
     <string name="app_cancel">Annuleren</string>
     <string name="app_done">Voltooid</string>
     <string name="app_error">Foutmelding</string>
-    <string name="app_warning">Waarschuwing</string>
     <string name="app_permission">Om deze functie te gebruiken moet u toestemming verlenen. Daarna moet u de app opnieuw starten.</string>
     <string name="list_empty">Lijst is leeg</string>
     <string name="album_title_bookmarks">Bladwijzers</string>
@@ -72,7 +71,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">Advertentieblokkering</string>
     <string name="setting_title_location">Locatie</string>
-    <string name="data_summary">Alle bestanden worden geëxporteerd naar de map \"Documents/browser_backup/\" van uw SD-card.</string>
     <string name="clear_title_quit">Wissen bij afsluiten van toepassing</string>
     <string name="clear_title_cache">Cache leegmaken</string>
     <string name="setting_title_ui">Gedrag/Uiterlijk</string>
@@ -112,7 +110,6 @@
     <string name="toast_quit">Wil je \"FOSS-browser\" afsluiten?</string>
     <string name="toast_quit_TAB">Wilt u de TAB sluiten?</string>
     <string name="toast_unsecured">Deze website gebruikt een onbeveiligde verbinding (\"http\"). Wilt u een beveiligde verbinding (\"https\") proberen?</string>
-    <string name="toast_backup">Back-up gegevens\? Dit overschrijft de bestaande back-up.</string>
     <string name="dialog_postOnWebsiteHint">URL om te openen. Zal worden opgeslagen voor volgend gebruik.</string>
     <string name="dialog_postOnWebsite">Post op de website</string>
     <string name="menu_desktopView">Bureaublad weergave</string>
@@ -147,7 +144,6 @@
     <string name="album_title_bookmarks_html">Bladwijzers (HTML)</string>
     <string name="setting_title_savedWebSites">Opgeslagen websites</string>
     <string name="setting_title_dynColors">Dynamische kleuren</string>
-    <string name="setting_backup_ext">Back-up bij afsluiten</string>
     <string name="setting_backup_sumDatabase">Startpagina, Bladwijzers, geschiedenis</string>
     <string name="setting_backup_sumSettings">App- en website-instellingen</string>
     <string name="privacy_redirect_use">Omleidingen gebruiken</string>

@@ -2,13 +2,17 @@ package de.baumann.browser.view;
 
 public class MenuItem {
     private final String title;
-    private final int iconResId; // Die Ressourcen-ID (z. B. android.R.drawable.ic_...)
+    private int iconResId;
     private boolean isSelected;
 
     public MenuItem(String title, int iconResId, boolean isSelected) {
         this.title = title;
         this.iconResId = iconResId;
         this.isSelected = isSelected;
+    }
+
+    public void setIconResId(int iconResId) {
+        this.iconResId = iconResId;
     }
 
     public String getTitle() { return title; }

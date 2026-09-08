@@ -1,6 +1,7 @@
 package de.baumann.browser.browser;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.net.Uri;
 import android.view.View;
 import android.webkit.ValueCallback;
@@ -17,7 +18,9 @@ public interface BrowserController {
     void updateProgress(int progress);
     void showAlbum(AlbumController albumController);
     void removeAlbum(AlbumController albumController);
-    void showFileChooser(ValueCallback<Uri[]> filePathCallback);
+
+    void showFileChooser(Context context, ValueCallback<Uri[]> filePathCallback);
+
     void onShowCustomView(View view, WebChromeClient.CustomViewCallback callback);
     void hideOverview();
     void hideOverflow();

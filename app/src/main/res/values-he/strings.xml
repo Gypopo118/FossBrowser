@@ -6,7 +6,6 @@
     <string name="app_cancel">בטל</string>
     <string name="app_done">בוצע</string>
     <string name="app_error">שגיאה</string>
-    <string name="app_warning">אזהרה</string>
     <string name="app_permission">כדי להשתמש בתכונה זו עליך להעניק הרשאה. לאחר מכן הפעל מחדש את האפליקציה.</string>
     <string name="list_empty">הרשימה ריקה</string>
     <string name="album_title_bookmarks">סימניות</string>
@@ -72,7 +71,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">AdBlock</string>
     <string name="setting_title_location">מקום</string>
-    <string name="data_summary">כל הקבצים ייוצאו לספריית \"Documents/browser_backup/\" של כרטיס ה-SD שלכם.</string>
     <string name="clear_title_quit">נקה ביציאה מהאפליקציה</string>
     <string name="clear_title_cache">נקה מטמון</string>
     <string name="setting_title_ui">התנהגות/ממשק משתמש</string>
@@ -112,7 +110,6 @@
     <string name="toast_quit">האם ברצונך לצאת מ\"דפדפן FOSS\"?</string>
     <string name="toast_quit_TAB">האם אתה רוצה לסגור את ה-TAB?</string>
     <string name="toast_unsecured">האתר משתמש בחיבור לא מאובטח (\"http\"). האם לנסות חיבור מאובטח (\"https\")?</string>
-    <string name="toast_backup">גיבוי נתונים\? פעולה זו תחליף את הגיבוי הישן.</string>
     <string name="dialog_postOnWebsiteHint">כתובת אתר לפתיחה. יישמר לשימוש הבא.</string>
     <string name="dialog_postOnWebsite">פרסם באתר</string>
     <string name="menu_desktopView">תצוגת שולחן עבודה</string>
@@ -148,7 +145,6 @@
     <string name="privacy_redirect_title">הפניות</string>
     <string name="setting_title_profiles_standard_always">עבור לפרופיל הסטנדרטי עבור דומיינים וכרטיסיות חדשים.</string>
     <string name="setting_title_cookie_thirdParty">עוגיות צד שלישי</string>
-    <string name="setting_backup_ext">גיבוי בעת יציאה</string>
     <string name="setting_backup_sumDatabase">דף הבית, סימניות, היסטוריה</string>
     <string name="setting_backup_sumSettings">הגדרות האפליקציה והאתר</string>
     <string name="title_appDatabase">מסד נתונים</string>

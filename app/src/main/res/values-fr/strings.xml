@@ -6,7 +6,6 @@
     <string name="app_cancel">Annuler</string>
     <string name="app_done">Fait</string>
     <string name="app_error">Erreur</string>
-    <string name="app_warning">Attention</string>
     <string name="app_permission">Pour utiliser cette fonctionnalité, vous devez accorder la permission.</string>
     <string name="list_empty">Liste vide</string>
     <string name="album_title_bookmarks">Signets</string>
@@ -72,7 +71,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">AdBlock</string>
     <string name="setting_title_location">Localisation</string>
-    <string name="data_summary">Tous les fichiers seront exportés vers le répertoire \"Documents/browser_backup/\" de votre carte SD.</string>
     <string name="clear_title_quit">Effacer à la fermeture de l\'application</string>
     <string name="clear_title_cache">Vider le cache</string>
     <string name="setting_title_ui">Comportement/UI</string>
@@ -112,7 +110,6 @@
     <string name="toast_quit">Voulez-vous quitter FOSS Browser ?</string>
     <string name="toast_quit_TAB">Voulez-vous fermer l\'onglet ?</string>
     <string name="toast_unsecured">Le site Web utilise une connexion non sécurisée (\"http\"). Essayez une connexion sécurisée (\"https\") ?</string>
-    <string name="toast_backup">Sauvegarde des données \? Cette opération écrasera la sauvegarde existante.</string>
     <string name="dialog_postOnWebsiteHint">URL à ouvrir. Sera sauvegardé pour la prochaine utilisation.</string>
     <string name="dialog_postOnWebsite">Voir sur le site</string>
     <string name="menu_desktopView">Vue bureau</string>
@@ -147,7 +144,6 @@
     <string name="album_title_bookmarks_html">Signets (HTML)</string>
     <string name="setting_title_savedWebSites">Sites web enregistrés</string>
     <string name="setting_title_dynColors">Couleurs dynamiques</string>
-    <string name="setting_backup_ext">Sauvegarde à la sortie</string>
     <string name="setting_backup_sumDatabase">Startsite, Signets, histoire</string>
     <string name="setting_backup_sumSettings">Paramètres des applications et des sites web</string>
     <string name="privacy_redirect_use">Utiliser des redirections</string>

@@ -6,7 +6,6 @@
     <string name="app_cancel">中止</string>
     <string name="app_done">完了</string>
     <string name="app_error">エラー</string>
-    <string name="app_warning">警告</string>
     <string name="app_permission">この機能を使うにはマイクの権限を与えなければいけません。その後アプリを再起動して下さい。</string>
     <string name="list_empty">リストが空です</string>
     <string name="album_title_bookmarks">ブックマーク</string>
@@ -72,7 +71,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">AdBlock</string>
     <string name="setting_title_location">位置情報</string>
-    <string name="data_summary">全てのファイルは SD カードの「Documents/browser_backup/」ディレクトリにエクスポートされます。</string>
     <string name="clear_title_quit">アプリ終了時に消去</string>
     <string name="clear_title_cache">キャッシュを削除</string>
     <string name="setting_title_ui">動作/UI</string>
@@ -112,7 +110,6 @@
     <string name="toast_quit">\"FOSS Browser\" を終了しますか?</string>
     <string name="toast_quit_TAB">タブを閉じますか?</string>
     <string name="toast_unsecured">ウェブサイトは安全でない接続 (\"http\") を使用しています。安全な接続を試してみますか (\"https\")?</string>
-    <string name="toast_backup">データをバックアップしますか？既存のバックアップを上書きします。</string>
     <string name="dialog_postOnWebsiteHint">開くためのURL。次回の使用時に保存されます。</string>
     <string name="dialog_postOnWebsite">ウェブサイトに掲載</string>
     <string name="menu_desktopView">デスクトップ表示</string>
@@ -147,7 +144,6 @@
     <string name="album_title_bookmarks_html">ブックマーク (HTML)</string>
     <string name="setting_title_savedWebSites">保存されたウェブサイト</string>
     <string name="setting_title_dynColors">ダイナミックカラー</string>
-    <string name="setting_backup_ext">終了時のバックアップ</string>
     <string name="setting_backup_sumDatabase">スタートサイト、ブックマーク、履歴</string>
     <string name="setting_backup_sumSettings">アプリとウェブサイトの設定</string>
     <string name="privacy_redirect_title">リダイレクト</string>

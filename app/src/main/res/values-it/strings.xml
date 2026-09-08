@@ -6,7 +6,6 @@
     <string name="app_cancel">Annulla</string>
     <string name="app_done">Fatti</string>
     <string name="app_error">Error</string>
-    <string name="app_warning">Attenzione</string>
     <string name="app_permission">Per utilizzare questa funzionalità è necessario concedere il permesso. Dopo aver riavviato l\'app.</string>
     <string name="list_empty">Elenco vuoto</string>
     <string name="album_title_bookmarks">Segnalibri</string>
@@ -72,7 +71,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">AdBlock</string>
     <string name="setting_title_location">Posizione</string>
-    <string name="data_summary">Tutti i file verranno esportati nella directory \"Documents/browser_backup/\" della scheda SD.</string>
     <string name="clear_title_quit">Cancella all\'uscita dell\'applicazione</string>
     <string name="clear_title_cache">Elimina Cache</string>
     <string name="setting_title_ui">Comportamento/UI</string>
@@ -112,7 +110,6 @@
     <string name="toast_quit">Vuoi uscire da \"FOSS Browser\"?</string>
     <string name="toast_quit_TAB">Vuoi chiudere la scheda?</string>
     <string name="toast_unsecured">Il sito web utilizza una connessione non protetta (\"http\"). Provare una connessione sicura (\"&lt;unk&gt; \")?</string>
-    <string name="toast_backup">Backup dei dati\? Il backup esistente verrà sovrascritto.</string>
     <string name="dialog_postOnWebsiteHint">URL da aprire. Sarà salvato per il prossimo utilizzo.</string>
     <string name="dialog_postOnWebsite">Pubblica sul sito web</string>
     <string name="menu_desktopView">Vista desktop</string>
@@ -146,7 +143,6 @@
     <string name="app_permission_notification">Notifiche</string>
     <string name="setting_title_savedWebSites">Siti web salvati</string>
     <string name="setting_title_dynColors">Colori dinamici</string>
-    <string name="setting_backup_ext">Backup all\'uscita</string>
     <string name="setting_backup_sumDatabase">Sito iniziale, Segnalibri, Storia</string>
     <string name="setting_backup_sumSettings">Impostazioni di app e siti web</string>
     <string name="privacy_redirect_use">Utilizzare i reindirizzamenti</string>

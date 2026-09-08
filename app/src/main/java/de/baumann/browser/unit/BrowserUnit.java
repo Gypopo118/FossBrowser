@@ -19,7 +19,6 @@ import android.os.Environment;
 import android.provider.Settings;
 import android.util.Log;
 import android.webkit.CookieManager;
-import android.webkit.WebStorage;
 import android.webkit.WebView;
 import android.widget.Toast;
 
@@ -30,7 +29,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.json.JSONException;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -41,7 +39,6 @@ import java.util.regex.Pattern;
 
 import de.baumann.browser.R;
 import de.baumann.browser.activity.BrowserActivity;
-import de.baumann.browser.browser.List_standard;
 import de.baumann.browser.database.RecordAction;
 import de.baumann.browser.objects.CustomRedirect;
 import de.baumann.browser.objects.CustomRedirectsHelper;
@@ -56,25 +53,21 @@ public class BrowserUnit {
         if (urlString == null || urlString.trim().isEmpty()) {
             return false;
         }
-
         urlString = urlString.trim();
+        if ("about:blank".equalsIgnoreCase(urlString)) {
+            return true;
+        }
         try {
             URI uri = new URI(urlString);
-
-            // Fall 1: Die URL hat bereits ein explizites Schema
             if (uri.getScheme() != null) {
                 String scheme = uri.getScheme().toLowerCase();
-                // Erlaubt Web-Links sowie lokale Datei- und Inhalts-Pfade von Android
                 return "http".equals(scheme) || "https".equals(scheme) || "file".equals(scheme) || "content".equals(scheme);
             }
-
-            // Fall 2: Die Eingabe hat kein Schema (z.B. "google.com")
             Pattern domainPattern = Pattern.compile("^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}(/.*)?$");
             if (domainPattern.matcher(urlString).matches()) {
                 URI fallbackUri = new URI("http://" + urlString);
                 return fallbackUri.getHost() != null && fallbackUri.getHost().contains(".");
             }
-
             return false;
         } catch (URISyntaxException e) {
             return false;
@@ -143,48 +136,43 @@ public class BrowserUnit {
         if (context == null || url == null || url.trim().isEmpty()) {
             return;
         }
-        // Sicherstellen, dass das Protokoll für den Android-Uri-Parser passt
+
+        // Protokoll-Korrektur (Sicheres HTTPS als Fallback statt unsicherem HTTP)
         String verifiedUrl = url;
         if (!url.toLowerCase(Locale.US).startsWith("http://") && !url.toLowerCase(Locale.US).startsWith("https://")) {
-            verifiedUrl = "http://" + url;
+            verifiedUrl = "https://" + url;
         }
-        // Berechtigungsprüfung (Ab Android 10/Q wird WRITE_EXTERNAL_STORAGE für Downloads nicht mehr benötigt)
-        boolean hasPermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q || BackupUnit.checkPermissionStorage(context);
-        if (hasPermission) {
-            try {
-                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(verifiedUrl));
-                CookieManager cookieManager = CookieManager.getInstance();
-                String cookie = cookieManager.getCookie(verifiedUrl);
-                if (cookie != null) {
-                    request.addRequestHeader("Cookie", cookie);
-                }
-                request.addRequestHeader("Accept", "text/html, application/xhtml+xml, */*");
-                request.addRequestHeader("Accept-Language", Locale.getDefault().toLanguageTag());
-                request.addRequestHeader("Referer", verifiedUrl);
-                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                request.setTitle(fileName);
-                request.setMimeType(mimeType);
-                request.allowScanningByMediaScanner();
-                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
-                DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-                if (manager != null) {
-                    manager.enqueue(request);
-                } else {
-                    throw new IllegalStateException("DownloadManager not available");
-                }
-            } catch (Exception e) {
-                // Sicherer Umgang mit Fehlermeldungen ohne StringIndexOutOfBoundsException
-                String errorMessage = e.getMessage() != null ? e.getMessage() : e.toString();
-                Toast.makeText(context, context.getString(R.string.app_error) + ": " + errorMessage, Toast.LENGTH_LONG).show();
-                Log.e(TAG, "FOSS Browser: Error Downloading File", e);
+
+        try {
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(verifiedUrl));
+            CookieManager cookieManager = CookieManager.getInstance();
+            String cookie = cookieManager.getCookie(verifiedUrl);
+            if (cookie != null) {
+                request.addRequestHeader("Cookie", cookie);
             }
-        } else {
-            // Sicherer Cast zu Activity nur, wenn der Context tatsächlich eine ist
-            if (context instanceof Activity) {
-                BackupUnit.requestPermission((Activity) context);
+
+            request.addRequestHeader("Accept", "text/html, application/xhtml+xml, */*");
+            request.addRequestHeader("Accept-Language", Locale.getDefault().toLanguageTag());
+            request.addRequestHeader("Referer", verifiedUrl);
+
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            request.setTitle(fileName);
+            request.setMimeType(mimeType);
+
+            // ENTFERNT: request.allowScanningByMediaScanner() da ab API 29 veraltet und wirkungslos
+
+            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+
+            DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+            if (manager != null) {
+                manager.enqueue(request);
             } else {
-                Log.e(TAG, "Cannot request permission: Context is not an Activity");
+                throw new IllegalStateException("DownloadManager not available");
             }
+        } catch (Exception e) {
+            String errorMessage = e.getMessage() != null ? e.getMessage() : e.toString();
+            Toast.makeText(context, context.getString(R.string.app_error) + ": " + errorMessage, Toast.LENGTH_LONG).show();
+            Log.e(TAG, "FOSS Browser: Error Downloading File", e);
         }
     }
 
@@ -200,82 +188,6 @@ public class BrowserUnit {
         action.open(true);
         action.clearTable(RecordUnit.TABLE_HISTORY);
         action.close();
-    }
-
-    public static void  clearBrowserData(Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        boolean clearCache = sp.getBoolean("sp_clear_cache", false);
-        boolean clearCookie = sp.getBoolean("sp_clear_cookie", false);
-        boolean clearHistory = sp.getBoolean("sp_clear_history", false);
-        boolean clearIndexedDB = sp.getBoolean("sp_clearIndexedDB", false);
-        boolean clearDB = sp.getBoolean("sp_deleteDatabase", false);
-        boolean clearSettings = sp.getBoolean("sp_clear_settings", false);
-        if (clearHistory) BrowserUnit.clearHistory(context);
-        if (clearCache)  {
-            try {
-                File dir = context.getCacheDir();
-                if (dir != null && dir.isDirectory()) deleteDir(dir);
-            } catch (Exception exception) {
-                Log.w("browser", "Error clearing cache");
-            }
-        }
-        if (clearSettings) {
-            sp.edit().clear().apply();
-            List_standard listStandard = new List_standard(context);
-            listStandard.clearDomains();
-        }
-        if (clearCookie) {
-            CookieManager cookieManager = CookieManager.getInstance();
-            cookieManager.flush();
-            cookieManager.removeAllCookies(value -> {
-            });
-        }
-        if (clearDB) {
-            context.deleteDatabase("Ninja4.db");
-            context.deleteDatabase("item_icon.db");
-            sp.edit().putInt("restart_changed", 1).apply();
-        }
-        if (clearIndexedDB) {
-            File data = Environment.getDataDirectory();
-            String blob_storage = "//data//" + context.getPackageName() + "//app_webview//" + "//Default//" + "//blob_storage";
-            String databases = "//data//" + context.getPackageName() + "//app_webview//" + "//Default//" + "//databases";
-            String indexedDB = "//data//" + context.getPackageName() + "//app_webview//" + "//Default//" + "//IndexedDB";
-            String localStorage = "//data//" + context.getPackageName() + "//app_webview//" + "//Default//" + "//Local Storage";
-            String serviceWorker = "//data//" + context.getPackageName() + "//app_webview//" + "//Default//" + "//Service Worker";
-            String sessionStorage = "//data//" + context.getPackageName() + "//app_webview//" + "//Default//" + "//Session Storage";
-            String shared_proto_db = "//data//" + context.getPackageName() + "//app_webview//" + "//Default//" + "//shared_proto_db";
-            String VideoDecodeStats = "//data//" + context.getPackageName() + "//app_webview//" + "//Default//" + "//VideoDecodeStats";
-            String QuotaManager = "//data//" + context.getPackageName() + "//app_webview//" + "//Default//" + "//QuotaManager";
-            String QuotaManager_journal = "//data//" + context.getPackageName() + "//app_webview//" + "//Default//" + "//QuotaManager-journal";
-            String webData = "//data//" + context.getPackageName() + "//app_webview//" + "//Default//" + "//Web Data";
-            String WebDataJournal = "//data//" + context.getPackageName() + "//app_webview//" + "//Default//" + "//Web Data-journal";
-            final File blob_storage_file = new File(data, blob_storage);
-            final File databases_file = new File(data, databases);
-            final File indexedDB_file = new File(data, indexedDB);
-            final File localStorage_file = new File(data, localStorage);
-            final File serviceWorker_file = new File(data, serviceWorker);
-            final File sessionStorage_file = new File(data, sessionStorage);
-            final File shared_proto_db_file = new File(data, shared_proto_db);
-            final File VideoDecodeStats_file = new File(data, VideoDecodeStats);
-            final File QuotaManager_file = new File(data, QuotaManager);
-            final File QuotaManager_journal_file = new File(data, QuotaManager_journal);
-            final File webData_file = new File(data, webData);
-            final File WebDataJournal_file = new File(data, WebDataJournal);
-
-            BrowserUnit.deleteDir(blob_storage_file);
-            BrowserUnit.deleteDir(databases_file);
-            BrowserUnit.deleteDir(indexedDB_file);
-            BrowserUnit.deleteDir(localStorage_file);
-            BrowserUnit.deleteDir(serviceWorker_file);
-            BrowserUnit.deleteDir(sessionStorage_file);
-            BrowserUnit.deleteDir(shared_proto_db_file);
-            BrowserUnit.deleteDir(VideoDecodeStats_file);
-            BrowserUnit.deleteDir(QuotaManager_file);
-            BrowserUnit.deleteDir(QuotaManager_journal_file);
-            BrowserUnit.deleteDir(webData_file);
-            BrowserUnit.deleteDir(WebDataJournal_file);
-            WebStorage.getInstance().deleteAllData();
-        }
     }
 
     public static void intentURL(Context context, Uri uri) {
@@ -376,17 +288,5 @@ public class BrowserUnit {
         // Berechtigung vorhanden oder älteres Android -> Benachrichtigung senden
         mNotifyMgr.notify(4, buildNotification);
         activity.moveTaskToBack(true);
-    }
-    public static boolean deleteDir(File dir) {
-        if (dir != null && dir.isDirectory()) {
-            String[] children = dir.list();
-            for (String aChildren : Objects.requireNonNull(children)) {
-                boolean success = deleteDir(new File(dir, aChildren));
-                if (!success) {
-                    return false;
-                }
-            }
-        }
-        return dir != null && dir.delete();
     }
 }

@@ -12,7 +12,6 @@
     <string name="app_error">Viga</string>
     <string name="app_error_copy">Palun vali ja kopeeri tekst käsitsi</string>
     <string name="app_error_save">Juba salvestatud.</string>
-    <string name="app_warning">Hoiatus</string>
     <string name="app_permission">Selle funktsionaalsuse kasutamiseks pead lubama vajalikud õigused.</string>
     <string name="app_permission_notification">Teavitused</string>
     <string name="list_empty">Tühi loend</string>
@@ -97,13 +96,11 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">Reklaamiblokerija</string>
     <string name="setting_title_location">Asukoht</string>
-    <string name="data_summary">Kõik failid salvestuvad sinu nutiseadme SD-kaardi kausta „Documents/browser_backup/“.</string>
     <string name="clear_title_quit">Kustuta väljumisel</string>
     <string name="clear_title_cache">Kustuta andmepuhver</string>
     <string name="setting_title_ui">Käitumine ja kasutajaliides</string>
     <string name="setting_title_data">Varukoopia</string>
     <string name="setting_filter">Järjehoidjate filter</string>
-    <string name="setting_backup_ext">Väljumisel varunda</string>
     <string name="setting_title_fav">Lemmik</string>
     <string name="setting_title_searchEngine">Sinu valitud otsingumootor</string>
     <string name="setting_title_userAgent">Sinu loodud brauseritunnus</string>
@@ -131,7 +128,6 @@
     <string name="toast_webview_forward">Järgmist veebisaiti ei õnnestu laadida.</string>
     <string name="toast_quit">Kas sulgeme FOSS Brauseri?</string>
     <string name="toast_quit_TAB">Kas sulgeme vahekaardi?</string>
-    <string name="toast_backup">Kas varundame andmed? See kirjutab eelmise varukoopia üle.</string>
     <string name="dialog_postOnWebsiteHint">Avatav võrguadress. Saab olema salvestatud järgmiseks kasutuskorraks.</string>
     <string name="dialog_postOnWebsite">Postita veebisaidile</string>
     <string name="menu_desktopView">Töölauavaade</string>

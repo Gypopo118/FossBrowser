@@ -2,12 +2,11 @@ package de.baumann.browser.browser;
 
 import static android.content.ContentValues.TAG;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.webkit.ConsoleMessage;
@@ -24,11 +23,12 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import androidx.preference.PreferenceManager;
-
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.util.ArrayList;
+
 import de.baumann.browser.R;
+import de.baumann.browser.activity.BrowserActivity;
 import de.baumann.browser.unit.BrowserUnit;
 import de.baumann.browser.unit.HelperUnit;
 import de.baumann.browser.view.NinjaToast;
@@ -38,9 +38,17 @@ public class NinjaWebChromeClient extends WebChromeClient {
 
     private final NinjaWebView ninjaWebView;
 
+    private final BrowserActivity activity;
+
     public NinjaWebChromeClient(NinjaWebView ninjaWebView) {
         super();
         this.ninjaWebView = ninjaWebView;
+        Context context = ninjaWebView.getContext();
+        if (context instanceof BrowserActivity) {
+            this.activity = (BrowserActivity) context;
+        } else {
+            this.activity = null;
+        }
     }
 
     @Override
@@ -108,7 +116,7 @@ public class NinjaWebChromeClient extends WebChromeClient {
         else ninjaWebView.updateTitle(title,url);
     }
     @Override
-    public boolean onCreateWindow(WebView view, boolean dialog, boolean userGesture, android.os.Message resultMsg) {
+    public boolean onCreateWindow(WebView view, boolean dialog, boolean userGesture, Message resultMsg) {
         Context context = view.getContext();
         NinjaWebView newWebView = new NinjaWebView(context);
         view.addView(newWebView);
@@ -132,7 +140,7 @@ public class NinjaWebChromeClient extends WebChromeClient {
         return true;
     }
     @Override
-    public void onShowCustomView(View view, WebChromeClient.CustomViewCallback callback) {
+    public void onShowCustomView(View view, CustomViewCallback callback) {
         NinjaWebView.getBrowserController().onShowCustomView(view, callback);
         super.onShowCustomView(view, callback);
     }
@@ -142,56 +150,59 @@ public class NinjaWebChromeClient extends WebChromeClient {
         super.onHideCustomView();
     }
     @Override
-    public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
-        NinjaWebView.getBrowserController().showFileChooser(filePathCallback);
+    public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+        NinjaWebView.getBrowserController().showFileChooser(ninjaWebView.getContext(),filePathCallback);
         return true;
     }
     @Override
-    public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
-        Activity activity = (Activity) ninjaWebView.getContext();
-        HelperUnit.grantPermissionsLoc(activity);
-        callback.invoke(origin, true, false);
-        super.onGeolocationPermissionsShowPrompt(origin, callback);
+    public void onPermissionRequest(final PermissionRequest request) {
+        final boolean needsCamera = containsResource(request.getResources(), PermissionRequest.RESOURCE_VIDEO_CAPTURE);
+        final boolean needsMicrophone = containsResource(request.getResources(), PermissionRequest.RESOURCE_AUDIO_CAPTURE);
+        // Szenario 1: Webseite will BEIDES (Kamera & Mikrofon)
+        if (needsCamera && needsMicrophone) {
+            activity.requestCameraPermission(isCameraGranted -> activity.requestMicrophonePermission(isMicGranted -> {
+                // Wir erstellen eine dynamische Liste der tatsächlich erteilten Rechte
+                ArrayList<String> grantedResources = new ArrayList<>();
+                if (isCameraGranted) grantedResources.add(PermissionRequest.RESOURCE_VIDEO_CAPTURE);
+                if (isMicGranted) grantedResources.add(PermissionRequest.RESOURCE_AUDIO_CAPTURE);
+                if (!grantedResources.isEmpty()) {
+                    // Gewährt nur das, was auch wirklich erlaubt wurde!
+                    request.grant(grantedResources.toArray(new String[0]));
+                } else {
+                    request.deny();
+                }
+            }));
+        }
+        else if (needsCamera) {
+            activity.requestCameraPermission(isCameraGranted -> {
+                if (isCameraGranted) {
+                    request.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+                } else {
+                    request.deny();
+                }
+            });
+        }
+        else if (needsMicrophone) {
+            activity.requestMicrophonePermission(isMicGranted -> {
+                if (isMicGranted) {
+                    request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
+                } else {
+                    request.deny();
+                }
+            });
+        }
+    }
+    // Kleine Hilfsmethode, um die Schleife sauber zu ersetzen
+    private boolean containsResource(String[] resources, String targetResource) {
+        if (resources == null) return false;
+        for (String res : resources) {
+            if (res.equals(targetResource)) return true;
+        }
+        return false;
     }
     @Override
-    public void onPermissionRequest(final PermissionRequest request) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ninjaWebView.getContext());
-        Activity activity = (Activity) ninjaWebView.getContext();
-        String[] resources = request.getResources();
-        for (String resource : resources) {
-            if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(resource)) {
-                if (sp.getBoolean(NinjaWebView.getProfile() + "_camera", false)){
-                    HelperUnit.grantPermissionsCamera(activity);
-                    if (ninjaWebView.getSettings().getMediaPlaybackRequiresUserGesture())
-                        ninjaWebView.getSettings().setMediaPlaybackRequiresUserGesture(false);
-                    //fix conflict with save data option. Temporarily switch off setMediaPlaybackRequiresUserGesture
-                    ninjaWebView.reloadWithoutInit();
-                    request.grant(request.getResources());
-                }
-            } else if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource)) {
-                if (sp.getBoolean(NinjaWebView.getProfile() + "_microphone", false)){
-                    HelperUnit.grantPermissionsMic(activity);
-                    request.grant(request.getResources());
-                }
-            } else if (PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID.equals(resource)) {
-                if (sp.getBoolean(NinjaWebView.getProfile() + "_drm", true)){
-                    request.grant(request.getResources());
-                } else {
-                    HelperUnit.showCustomSnackbarWithTwoActions(
-                            ninjaWebView.getContext(), ninjaWebView, null,
-                            ninjaWebView.getContext().getString(R.string.app_warning), ninjaWebView.getContext().getString(R.string.hint_DRM_Media), ninjaWebView.getUrl(),
-                            R.drawable.icon_check, () -> {
-                                request.grant(request.getResources());
-                                return true;
-                            },
-                            R.drawable.icon_close, () -> {
-                                request.deny();
-                                return true;
-                            }
-                    );
-                }
-            }
-        }
+    public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+        activity.requestLocationPermission(isGranted -> callback.invoke(origin, isGranted, false));
     }
     @Override
     public void onReceivedIcon(WebView view, Bitmap icon) {

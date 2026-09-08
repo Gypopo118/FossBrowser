@@ -6,7 +6,6 @@
     <string name="app_cancel">Zrušit</string>
     <string name="app_done">Hotovo</string>
     <string name="app_error">Chyba</string>
-    <string name="app_warning">Varování</string>
     <string name="app_permission">Chcete-li použít tuto funkci, musíte udělit oprávnění. Poté aplikaci restartujte.</string>
     <string name="list_empty">Seznam je prázdný</string>
     <string name="album_title_bookmarks">Záložky</string>
@@ -72,7 +71,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">AdBlock</string>
     <string name="setting_title_location">Poloha</string>
-    <string name="data_summary">Všechny soubory budou exportovány do adresáře „Documents/browser_backup/“ na vaší SD kartě.</string>
     <string name="clear_title_quit">Vymazat při ukončení aplikace</string>
     <string name="clear_title_cache">Vymazat mezipaměť</string>
     <string name="setting_title_ui">Chování/UI</string>
@@ -112,7 +110,6 @@
     <string name="toast_quit">Opravdu chcete ukončit aplikaci „FOSS Browser“?</string>
     <string name="toast_quit_TAB">Chcete zavřít KARTU?</string>
     <string name="toast_unsecured">Stránka používá nezabezpečené připojení („http“). Chcete zkusit zabezpečné připojení („https“)?</string>
-    <string name="toast_backup">Zálohování dat\? Tím se přepíše stávající záloha.</string>
     <string name="dialog_postOnWebsiteHint">URL pro otevření. Uloží se pro další použití.</string>
     <string name="dialog_postOnWebsite">Příspěvek na webových stránkách</string>
     <string name="menu_desktopView">Zobrazení pro PC</string>
@@ -145,7 +142,6 @@
     <string name="app_session">… v probíhajícím zasedání?</string>
     <string name="app_permission_notification">Oznámení</string>
     <string name="setting_title_dynColors">Dynamické barvy</string>
-    <string name="setting_backup_ext">Zálohování při ukončení</string>
     <string name="setting_backup_sumDatabase">Startovní stránka, záložky, historie</string>
     <string name="privacy_redirect_use">Použití přesměrování</string>
     <string name="privacy_redirect_title">Přesměrování</string>

@@ -7,6 +7,7 @@ import static android.view.View.VISIBLE;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 import android.Manifest;
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -14,7 +15,6 @@ import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.NotificationManager;
 import android.app.SearchManager;
-import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -34,6 +34,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
@@ -48,8 +49,7 @@ import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowInsets;
-import android.view.WindowInsetsController;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.ValueCallback;
@@ -78,7 +78,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.cardview.widget.CardView;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
@@ -91,6 +90,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.webkit.WebViewFeature;
+import androidx.activity.OnBackPressedCallback;
 
 import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.badge.BadgeUtils;
@@ -103,8 +103,6 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONException;
 
@@ -114,14 +112,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -130,17 +124,19 @@ import de.baumann.browser.browser.AlbumController;
 import de.baumann.browser.browser.BannerBlock;
 import de.baumann.browser.browser.BrowserContainer;
 import de.baumann.browser.browser.BrowserController;
-import de.baumann.browser.browser.DataURIParser;
 import de.baumann.browser.browser.List_standard;
+import de.baumann.browser.browser.NinjaDownloadListener;
 import de.baumann.browser.database.FaviconHelper;
 import de.baumann.browser.database.Record;
 import de.baumann.browser.database.RecordAction;
 import de.baumann.browser.dialogs.CustomRedirectsDialog;
-import de.baumann.browser.fragment.Fragment_settings_Backup;
 import de.baumann.browser.objects.CustomRedirect;
 import de.baumann.browser.objects.CustomSearchesHelper;
 import de.baumann.browser.unit.BrowserUnit;
+import de.baumann.browser.unit.DeleteUtils;
 import de.baumann.browser.unit.HelperUnit;
+import de.baumann.browser.unit.PermissionCallback;
+import de.baumann.browser.unit.PermissionUtils;
 import de.baumann.browser.unit.RecordUnit;
 import de.baumann.browser.view.AdapterCustomSearches;
 import de.baumann.browser.view.AdapterMenu;
@@ -155,7 +151,58 @@ import de.baumann.browser.view.SwipeTouchListener;
 
 public class BrowserActivity extends AppCompatActivity implements BrowserController {
 
-    // Menus
+    private PermissionCallback activeCallback;
+
+    private final ActivityResultLauncher<String> locationLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(), isGranted -> handleSystemResult(isGranted, "Standort"));
+
+    private final ActivityResultLauncher<String> cameraLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(), isGranted -> handleSystemResult(isGranted, "Kamera"));
+
+    private final ActivityResultLauncher<String> microphoneLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(), isGranted -> handleSystemResult(isGranted, "Mikrofon"));
+
+    public void requestLocationPermission(PermissionCallback callback) {
+        if (sp.getBoolean(NinjaWebView.getProfile() + "_location", false)){
+            if (PermissionUtils.hasPermission(this, PermissionUtils.PermissionType.LOCATION)) {
+                callback.onPermissionResult(true);
+            } else {
+                this.activeCallback = callback;
+                locationLauncher.launch(PermissionUtils.getManifestString(PermissionUtils.PermissionType.LOCATION));
+            }
+        }
+    }
+    public void requestCameraPermission(PermissionCallback callback) {
+        if (sp.getBoolean(NinjaWebView.getProfile() + "_camera", false)){
+            if (PermissionUtils.hasPermission(this, PermissionUtils.PermissionType.CAMERA)) {
+                callback.onPermissionResult(true);
+            } else {
+                this.activeCallback = callback;
+                cameraLauncher.launch(PermissionUtils.getManifestString(PermissionUtils.PermissionType.CAMERA));
+            }
+        }
+    }
+    public void requestMicrophonePermission(PermissionCallback callback) {
+        if (sp.getBoolean(NinjaWebView.getProfile() + "_microphone", false)){
+            if (PermissionUtils.hasPermission(this, PermissionUtils.PermissionType.MICROPHONE)) {
+                callback.onPermissionResult(true);
+            } else {
+                this.activeCallback = callback;
+                microphoneLauncher.launch(PermissionUtils.getManifestString(PermissionUtils.PermissionType.MICROPHONE));
+            }
+        }
+    }
+
+    private void handleSystemResult(boolean isGranted, String name) {
+        if (activeCallback != null) {
+            activeCallback.onPermissionResult(isGranted);
+            activeCallback = null;
+        }
+        if (!isGranted) {
+            Toast.makeText(this, name + ": " + getString(R.string.app_permission), Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private AdapterRecord adapter;
     private ImageButton fab_overview;
     private ListView listView;
@@ -191,43 +238,46 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     private long newIcon;
     private long filterBy;
     private boolean filter;
-    private ValueCallback<Uri[]> filePathCallback = null;
     private AlbumController currentAlbumController = null;
+
+    private ValueCallback<Uri[]> filePathCallback;
+
     private ValueCallback<Uri[]> mFilePathCallback;
-    private String mCameraPhotoPath;
-    // Der moderne Ersatz für onActivityResult
+    private Uri cameraPhotoUri;
+    private File currentPhotoFile;
+    private ActivityResultLauncher<String> requestCameraPermissionLauncher;
+
     private final ActivityResultLauncher<Intent> fileChooserLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (mFilePathCallback == null) return;
-
                 Uri[] results = null;
-
-                if (result.getResultCode() == Activity.RESULT_OK) {
+                if (result.getResultCode() == Activity.RESULT_OK && cameraPhotoUri != null) {
+                    if (currentPhotoFile != null && currentPhotoFile.exists() && currentPhotoFile.length() > 0) {
+                        results = new Uri[]{cameraPhotoUri};
+                    }
+                }
+                if (results == null && result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     Intent data = result.getData();
-                    // Falls 'data' null ist, wurde ein Kamerafoto aufgenommen
-                    if (data == null || (data.getData() == null && data.getClipData() == null)) {
-                        if (mCameraPhotoPath != null) {
-                            results = new Uri[]{Uri.parse(mCameraPhotoPath)};
-                        }
-                    } else {
-                        // Daten kommen aus der Galerie / dem Dateimanager
-                        if (data.getData() != null) {
-                            results = new Uri[]{data.getData()};
-                        } else if (data.getClipData() != null) {
-                            int count = data.getClipData().getItemCount();
-                            results = new Uri[count];
-                            for (int i = 0; i < count; i++) {
-                                results[i] = data.getClipData().getItemAt(i).getUri();
-                            }
+                    if (data.getData() != null) {
+                        results = new Uri[]{data.getData()};
+                    } else if (data.getClipData() != null) {
+                        int count = data.getClipData().getItemCount();
+                        results = new Uri[count];
+                        for (int i = 0; i < count; i++) {
+                            results[i] = data.getClipData().getItemAt(i).getUri();
                         }
                     }
                 }
-
-                // Ergebnis an das WebView zurückgeben
-                mFilePathCallback.onReceiveValue(results);
+                // Ergebnis an die WebView zurückgeben
+                if (results != null) {
+                    mFilePathCallback.onReceiveValue(results);
+                } else {
+                    // WICHTIG: Sendet bei Abbruch ein leeres Array, damit die WebView nicht blockiert/einfriert
+                    mFilePathCallback.onReceiveValue(new Uri[0]);
+                }
                 mFilePathCallback = null;
-                mCameraPhotoPath = null;
+                currentPhotoFile = null;
             }
     );
 
@@ -288,30 +338,41 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
                 .putBoolean("show_overview", true)
                 .putString("openBackground_dialog", "show").apply();
 
-        if (Objects.requireNonNull(sp.getString("start_tab", "3")).equals("4")) {
-            overViewTab = getString(R.string.album_title_history);
-        } else {
-            overViewTab = getString(R.string.album_title_bookmarks);
+        switch (sp.getString("start_tab", "3")) {
+            case "4":
+                overViewTab = getString(R.string.album_title_history);
+                break;
+            case "5":
+                overViewTab = getString(R.string.album_title_tab);
+                break;
+            default:
+                overViewTab = getString(R.string.album_title_bookmarks);
+                break;
         }
 
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         contentFrame = findViewById(R.id.main_content);
 
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        controller.setAppearanceLightStatusBars(false);
+        findViewById(R.id.main).setBackgroundColor(ContextCompat.getColor(context, R.color.design_default_color_on_secondary));
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            boolean isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
-            int keyboardHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setBackgroundColor(ContextCompat.getColor(context, R.color.design_default_color_on_secondary));
-            WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-            controller.setAppearanceLightStatusBars(false);
-            if (isKeyboardVisible) {
-                v.setPadding(0, 0, 0, keyboardHeight);
-            } else {
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            }
+            int keyboardHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
+            boolean isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
+            int paddingBottom = isKeyboardVisible ? keyboardHeight : systemBars.bottom;
+            v.setPadding(
+                    systemBars.left,
+                    systemBars.top,
+                    systemBars.right,
+                    paddingBottom
+            );
             return insets;
         });
+
+        requestCameraPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), this::startCustomFileChooser);
 
         MaterialAlertDialogBuilder builderOverview = new MaterialAlertDialogBuilder(context);
         View dialogViewOverview = View.inflate(context, R.layout.dialog_overview, null);
@@ -349,7 +410,6 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         initSearchOnSite();
         initOverview();
         hideSearch();
-        dispatchIntent(getIntent());
 
         //restore open Tabs from shared preferences if app got killed
         if (sp.getBoolean("sp_restoreTabs", false)
@@ -366,13 +426,26 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             sp.edit().putString("profile", saveDefaultProfile).apply();
             sp.edit().putBoolean("restoreOnRestart", false).apply();
         }
-        //if still no open Tab open default page
-        if (BrowserContainer.size() < 1) {
-            addAlbum(getString(R.string.app_name), sp.getString("favoriteURL", "https://codeberg.org/Gaukler_Faun/FOSS_Browser/wiki"), true);
-        }
+
         if (sp.getBoolean("start_tabStart", false) && sp.getBoolean("show_overview", true)) {
             showOverview();
         }
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (fullscreenHolder != null || customView != null || videoView != null) {
+                    Log.v(TAG, "FOSS Browser in fullscreen mode");
+                } else if (searchOnSiteLayout.getVisibility() == VISIBLE){
+                    searchOnSiteInput.setText("");
+                    searchOnSiteLayout.setVisibility(GONE);
+                    appBar.setVisibility(VISIBLE);
+                } else if (ninjaWebView.canGoBack()){
+                    sp.edit().putBoolean("backPressed", true).apply();
+                    ninjaWebView.goBack();
+                } else removeAlbum(currentAlbumController);
+            }
+        });
     }
 
     @Override
@@ -384,11 +457,6 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     @Override
     public void onResume() {
         super.onResume();
-        if (sp.getBoolean("sp_camera", false)) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 1);
-            }
-        }
         if (sp.getInt("restart_changed", 1) == 1) {
             triggerRebirth(context);
         }
@@ -400,19 +468,19 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             snackbar.setAction(context.getString(R.string.app_ok), v -> startActivity(Intent.createChooser(new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS), null)));
             snackbar.show();
         }
-        dispatchIntent(getIntent());
+        Intent intent = getIntent();
+        if (intent != null && intent.getAction() != null && !intent.getAction().isEmpty()) {
+            dispatchIntent(intent);
+            intent.setAction("");
+            intent.setData(null);
+        }
     }
 
     @Override
     public void onDestroy() {
+        DeleteUtils.checkAndExecuteAutoDelete(getApplicationContext());
         NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancel(1);
-        if (sp.getBoolean("sp_clear_quit", true)) {
-            BrowserUnit.clearBrowserData(this);
-        }
-        if (sp.getBoolean("sp_backup_quit", false)) {
-            Fragment_settings_Backup.backup(activity);
-        }
         BrowserContainer.clear();
         if (!sp.getBoolean("sp_reloadTabs", false) || sp.getInt("restart_changed", 1) == 1) {
             sp.edit().putString("openTabs", "").apply();
@@ -422,34 +490,43 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_MENU:
-                showOverflow(null, null, 0, ninjaWebView.getTitle(), ninjaWebView.getUrl(), null, null, 0);
-            case KeyEvent.KEYCODE_BACK:
-                if (fullscreenHolder != null || customView != null || videoView != null) {
-                    Log.v(TAG, "FOSS Browser in fullscreen mode");
-                } else if (searchOnSiteLayout.getVisibility() == VISIBLE){
-                    searchOnSiteInput.setText("");
-                    searchOnSiteLayout.setVisibility(GONE);
-                    appBar.setVisibility(VISIBLE);
-                } else if (ninjaWebView.canGoBack()){
-                    sp.edit().putBoolean("backPressed", true).apply();
-                    ninjaWebView.goBack();
-                } else removeAlbum(currentAlbumController);
-                return true;
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
+            showOverflow(null, null, 0, ninjaWebView.getTitle(), ninjaWebView.getUrl(), null, null, 0);
         }
         return false;
     }
 
     @Override
     public synchronized void showAlbum(AlbumController controller) {
-        View av = (View) controller;
+        if (controller == null) return;
+
         if (currentAlbumController != null) currentAlbumController.deactivate();
         currentAlbumController = controller;
         currentAlbumController.activate();
-        contentFrame.removeAllViews();
-        contentFrame.addView(av);
-        updateOmniBox();
+
+        View av = (View) controller;
+        if (av.getBackground() != null) {
+            contentFrame.setBackground(av.getBackground());
+        }
+        if (av.getParent() != null) {
+            ((ViewGroup) av.getParent()).removeView(av);
+        }
+        if (contentFrame.isLaidOut() && contentFrame.getChildCount() > 0 && BrowserContainer.size() > 1) {
+            View oldView = contentFrame.getChildAt(0);
+            oldView.animate()
+                    .alpha(0f)
+                    .setDuration(250)
+                    .withEndAction(() -> contentFrame.removeView(oldView))
+                    .start();
+            av.setAlpha(0f);
+            contentFrame.addView(av);
+            av.animate().alpha(1f).setDuration(250).start();
+        } else {
+            contentFrame.removeAllViews();
+            contentFrame.addView(av);
+            av.setAlpha(1f);
+        }
+        try { updateOmniBox(); } catch (Exception ignored) {}
     }
 
     @Override
@@ -480,63 +557,80 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             });
         }
         updateOmniBox();
-        saveOpenedTabs();
     }
 
     @Override
     public synchronized void updateProgress(int progress) {
-        updateOmniBox();
         progressBar.setProgressCompat(progress, true);
+        updateOmniBox();
         if (progress < 100) {
             progressBar.setVisibility(VISIBLE);
         } else {
             progressBar.setVisibility(GONE);
-            saveOpenedTabs();
-        }
+            final Handler handler = new Handler(Looper.getMainLooper());
+            handler.postDelayed(() ->
+                            FaviconHelper.setFavicon(context, contentView, ninjaWebView.getUrl(), R.id.menu_icon, R.drawable.icon_image_broken),
+                    500
+            );}
     }
 
     @Override
-    public void showFileChooser(ValueCallback<Uri[]> filePathCallback) {
+    public void showFileChooser(Context context, ValueCallback<Uri[]> filePathCallback) {
         if (mFilePathCallback != null) {
             mFilePathCallback.onReceiveValue(null);
         }
         mFilePathCallback = filePathCallback;
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        File photoFile = null;
-        try {
-            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-            String imageFileName = "JPEG_" + timeStamp + "_";
-            File storageDir = getExternalCacheDir();
-            photoFile = File.createTempFile(imageFileName, ".jpg", storageDir);
-        } catch (IOException ex) {
-            Log.e("FileChoose", "Fehler beim Erstellen der Bilddatei", ex);
-        }
-        if (photoFile != null) {
-            Uri photoURI = FileProvider.getUriForFile(this,
-                    "de.baumann.browser.fileprovider",
-                    photoFile);
-            mCameraPhotoPath = photoURI.toString();
-            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+        checkPermissionAndProceed();
+    }
+    private void checkPermissionAndProceed() {
+        if (PermissionUtils.hasPermission(this, PermissionUtils.PermissionType.CAMERA)) {
+            startCustomFileChooser(true);
         } else {
-            takePictureIntent = null;
-        }
-        Intent getContentIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        getContentIntent.addCategory(Intent.CATEGORY_OPENABLE);
-        getContentIntent.setType("image/*");
-
-        Intent chooserIntent = Intent.createChooser(getContentIntent, "Bildquelle auswählen");
-        if (takePictureIntent != null) {
-            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{takePictureIntent});
-        }
-        try {
-            fileChooserLauncher.launch(chooserIntent);
-        } catch (ActivityNotFoundException e) {
-            Log.e("FileChoose", "Keine passende App gefunden", e);
-            mFilePathCallback.onReceiveValue(null);
-            mFilePathCallback = null;
+            String cameraPermission = PermissionUtils.getManifestString(PermissionUtils.PermissionType.CAMERA);
+            requestCameraPermissionLauncher.launch(cameraPermission);
         }
     }
+    private void startCustomFileChooser(boolean includeCamera) {
+        Intent pickIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        pickIntent.addCategory(Intent.CATEGORY_OPENABLE);
+        pickIntent.setType("*/*");
 
+        String[] mimeTypes = {"image/*", "video/*", "*/*"};
+        pickIntent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+        pickIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+
+        Intent chooserIntent;
+        if (includeCamera) {
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            setupCameraUri();
+            if (cameraPhotoUri != null) {
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraPhotoUri);
+                chooserIntent = Intent.createChooser(pickIntent, null);
+                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{takePictureIntent});
+            } else {
+                chooserIntent = Intent.createChooser(pickIntent, null);
+            }
+        } else {
+            android.widget.Toast.makeText(this, "abgelehnt.", android.widget.Toast.LENGTH_LONG).show();
+            chooserIntent = Intent.createChooser(pickIntent, null);
+        }
+        fileChooserLauncher.launch(chooserIntent);
+    }
+    private void setupCameraUri() {
+        try {
+            currentPhotoFile = createImageFile();
+            cameraPhotoUri = FileProvider.getUriForFile(this, "de.baumann.browser.fileprovider", currentPhotoFile);
+        } catch (IOException e) {
+            Log.e("Upload", "Fehler beim Erstellen der Kamera-Datei", e);
+            currentPhotoFile = null;
+            cameraPhotoUri = null;
+        }
+    }
+    private File createImageFile() throws IOException {
+        String imageFileName = "JPEG_" + System.currentTimeMillis() + "_";
+        File storageDir = getCacheDir();
+        return File.createTempFile(imageFileName, ".jpg", storageDir);
+    }
     @Override
     public void onShowCustomView(View view, WebChromeClient.CustomViewCallback callback) {
         if (view == null) return;
@@ -544,7 +638,6 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             callback.onCustomViewHidden();
             return;
         }
-
         customView = view;
         fullscreenHolder = new FrameLayout(context);
         fullscreenHolder.addView(
@@ -553,7 +646,6 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
                         FrameLayout.LayoutParams.MATCH_PARENT,
                         FrameLayout.LayoutParams.MATCH_PARENT
                 ));
-
         FrameLayout decorView = (FrameLayout) getWindow().getDecorView();
         decorView.addView(
                 fullscreenHolder,
@@ -561,7 +653,6 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
                         FrameLayout.LayoutParams.MATCH_PARENT,
                         FrameLayout.LayoutParams.MATCH_PARENT
                 ));
-
         customView.setKeepScreenOn(true);
         ((View) currentAlbumController).setVisibility(GONE);
         setCustomFullscreen(true);
@@ -752,21 +843,55 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     @SuppressLint({"ClickableViewAccessibility", "UnsafeOptInUsageError"})
     private void initOmniBox() {
 
-        search_input = dialogViewSearch.findViewById(R.id.search_input);
         appBar = findViewById(R.id.appBar);
         appBar_title = findViewById(R.id.appBar_title);
         contentView = findViewById(android.R.id.content);
-        LinearLayout appBar_buttons = findViewById(R.id.appBar_buttons);
 
+        LinearLayout appBar_buttons = findViewById(R.id.appBar_buttons);
         FloatingActionButton fab_showAppBar = findViewById(R.id.fab_showAppBar);
         fab_showAppBar.setOnClickListener(v1 -> {
+            sp.edit().putBoolean("hideToolbar", false).apply();
             appBar.setVisibility(VISIBLE);
-            ObjectAnimator animationBack = ObjectAnimator.ofFloat(appBar, "translationY", 0f);
-            animationBack.setDuration(250);
-            animationBack.start();
-            ObjectAnimator animationBack2 = ObjectAnimator.ofFloat(appBar_buttons, "translationY", 0f);
-            animationBack2.setDuration(250);
-            animationBack2.start();
+            ObjectAnimator animAppBar = ObjectAnimator.ofFloat(appBar, View.TRANSLATION_Y, 0f);
+            ObjectAnimator animButtons = ObjectAnimator.ofFloat(appBar_buttons, View.TRANSLATION_Y, 0f);
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(animAppBar, animButtons);
+            animatorSet.setDuration(250);
+            animatorSet.start();
+        });
+
+        fab_showAppBar.setOnLongClickListener(v -> {
+            fab_showAppBar.setEnabled(false);
+            fab_showAppBar.animate()
+                    .alpha(0f)
+                    .scaleX(0f)
+                    .scaleY(0f)
+                    .setDuration(250)
+                    .withEndAction(() -> {
+                        fab_showAppBar.setVisibility(View.INVISIBLE);
+                        Runnable fadeInAction = () -> {
+                            fab_showAppBar.setVisibility(View.VISIBLE);
+                            fab_showAppBar.animate()
+                                    .alpha(1f)
+                                    .scaleX(1f)
+                                    .scaleY(1f)
+                                    .setDuration(250)
+                                    .withEndAction(() -> fab_showAppBar.setEnabled(true)) // Klick-Schutz aufheben
+                                    .start();
+                        };
+                        fab_showAppBar.postDelayed(fadeInAction, 5000);
+                        fab_showAppBar.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                            @Override
+                            public void onViewAttachedToWindow(@NonNull View v) {}
+                            @Override
+                            public void onViewDetachedFromWindow(@NonNull View v) {
+                                fab_showAppBar.removeCallbacks(fadeInAction);
+                                fab_showAppBar.removeOnAttachStateChangeListener(this);
+                            }
+                        });
+                    })
+                    .start();
+            return true;
         });
 
         appBar.setOnClickListener(view -> {
@@ -777,14 +902,16 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             HelperUnit.showSoftKeyboard(search_input);
         });
         appBar.setOnLongClickListener(v -> {
-            ObjectAnimator animation = ObjectAnimator.ofFloat(appBar, "translationY", 275f);
-            animation.setDuration(250);
-            animation.start();
-            ObjectAnimator animation2 = ObjectAnimator.ofFloat(appBar_buttons, "translationY", 275f);
-            animation2.setDuration(250);
-            animation2.start();
+            sp.edit().putBoolean("hideToolbar", true).apply();
+            ObjectAnimator animAppBar = ObjectAnimator.ofFloat(appBar, View.TRANSLATION_Y, 275f);
+            ObjectAnimator animButtons = ObjectAnimator.ofFloat(appBar_buttons, View.TRANSLATION_Y, 275f);
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(animAppBar, animButtons);
+            animatorSet.setDuration(250);
+            animatorSet.start();
             return true;
         });
+
 
         fab_menu = findViewById(R.id.fab_menu);
         fab_menu.setOnClickListener(view -> showOverflow(null, null, 0, ninjaWebView.getTitle(), ninjaWebView.getUrl(), null, null, 0));
@@ -793,18 +920,21 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             return true;
         });
         fab_overview = findViewById(R.id.fab_overview);
+        fab_overview.setOnClickListener(v -> showOverview());
+        fab_overview.setOnLongClickListener(v -> {
+            performGesture("setting_gesture_overViewButton", ninjaWebView.getUrl());
+            return true;
+        });
+
         list_search = dialogViewSearch.findViewById(R.id.list_search);
         progressBar = findViewById(R.id.main_progress_bar);
         badgeDrawable = BadgeDrawable.create(context);
 
         TypedValue typedValue = new TypedValue();
         context.getTheme().resolveAttribute(R.attr.colorPrimaryInverse, typedValue, true);
-        int color = typedValue.data;
-        TypedValue typedValue2 = new TypedValue();
-        context.getTheme().resolveAttribute(R.attr.colorOnSurface, typedValue2, true);
-        int color2 = typedValue2.data;
-        badgeDrawable.setBackgroundColor(color);
-        badgeDrawable.setBadgeTextColor(color2);
+        badgeDrawable.setBackgroundColor(typedValue.data);
+        context.getTheme().resolveAttribute(R.attr.colorOnSurface, typedValue, true);
+        badgeDrawable.setBadgeTextColor(typedValue.data);
 
         fab_overview.setOnTouchListener(new SwipeTouchListener(context) {
             public void onSwipeTop() {
@@ -835,7 +965,6 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
                 hideOverflow(); }});
 
         TextInputLayout search_textField  = dialogViewSearch.findViewById(R.id.search_textField);
-
         search_textField.setStartIconOnClickListener(v -> {
             if (Objects.requireNonNull(search_input.getText()).toString().isEmpty()) {
                 hideSearch();
@@ -856,11 +985,17 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             String query = Objects.requireNonNull(search_input.getText()).toString().trim();
             handleFinalSearch(query);
         });
+
+        search_input = dialogViewSearch.findViewById(R.id.search_input);
         search_input.setOnEditorActionListener((v, actionId, event) -> {
             String query = Objects.requireNonNull(search_input.getText()).toString().trim();
             handleFinalSearch(query);
             return true;
         });
+
+        context.getTheme().resolveAttribute(R.attr.colorOnSurface, typedValue, true);
+        ColorStateList colorActive = ColorStateList.valueOf(typedValue.data);
+        ColorStateList colorInactive = ColorStateList.valueOf(Color.GRAY);
 
         search_input.addTextChangedListener(new TextWatcher() {
             @Override
@@ -868,29 +1003,16 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String liveText = s.toString().trim();
-                boolean hasText = !liveText.isEmpty();
-                if (hasText) {
-                    TypedValue typedValue = new TypedValue();
-                    context.getTheme().resolveAttribute(R.attr.colorOnSurface, typedValue, true);
-                    int color = typedValue.data;
-                    search_textField.setStartIconTintList(ColorStateList.valueOf(color));
-                    search_textField.setEndIconTintList(ColorStateList.valueOf(color));
-                } else {
-                    search_textField.setStartIconTintList(ColorStateList.valueOf(Color.GRAY));
-                    search_textField.setEndIconTintList(ColorStateList.valueOf(Color.GRAY));
-                }
+                if (s == null) return;
+                ColorStateList tint = (s.length() > 0) ? colorActive : colorInactive;
+                search_textField.setStartIconTintList(tint);
+                search_textField.setEndIconTintList(tint);
                 adapterSearch.getFilter().filter(s);
-                sp.edit().putString("searchInput", s.toString()).apply();// Hier kannst du den Live-String direkt verarbeiten (z.B. für Vorschläge)
+                sp.edit().putString("searchInput", s.toString()).apply();
             }
 
             @Override
             public void afterTextChanged(Editable s) {}
-        });
-        fab_overview.setOnClickListener(v -> showOverview());
-        fab_overview.setOnLongClickListener(v -> {
-            performGesture("setting_gesture_overViewButton", ninjaWebView.getUrl());
-            return true;
         });
     }
 
@@ -905,40 +1027,39 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
 
     @SuppressLint({"UnsafeOptInUsageError"})
     public void updateOmniBox() {
-
-        TextView overflowURL = findViewById(R.id.appbar_URL);
-        String url = ninjaWebView.getUrl();
-        String title = ninjaWebView.getTitle();
-
         if (overViewTab.equals(getString(R.string.album_title_bookmarks))) {
             try {
                 RecordAction action = new RecordAction(context);
                 action.open(true);
-                if (action.checkUrl(url, RecordUnit.TABLE_BOOKMARK)) fab_overview.setImageResource(R.drawable.icon_bookmark_added);
+                if (action.checkUrl(ninjaWebView.getUrl(), RecordUnit.TABLE_BOOKMARK)) fab_overview.setImageResource(R.drawable.icon_bookmark_added);
                 else fab_overview.setImageResource(R.drawable.icon_bookmark);
                 action.close();
             }
             catch (Exception e) {Log.i(TAG, "dialogCustomSearches:" + e);}
         }
 
-        ninjaWebView = (NinjaWebView) currentAlbumController;
-        ninjaWebView.initPreferences(url);
-
         searchOnSiteLayout.setVisibility(GONE);
         appBar.setVisibility(VISIBLE);
         searchOnSiteInput.setText("");
-
-        BadgeUtils.attachBadgeDrawable(badgeDrawable, fab_overview, findViewById(R.id.layout));
         badgeDrawable.setVisible(BrowserContainer.size() > 1);
         badgeDrawable.setNumber(BrowserContainer.size());
+        BadgeUtils.attachBadgeDrawable(badgeDrawable, fab_overview, findViewById(R.id.layout));
         bottom_navigation.getOrCreateBadge(R.id.page_0).setNumber(BrowserContainer.size());
 
+        ninjaWebView = (NinjaWebView) currentAlbumController;
+        String url = ninjaWebView.getUrl();
+        ninjaWebView.initPreferences(url);
+        saveOpenedTabs();
+
         if (url != null && ninjaWebView.isForeground()) {
-            appBar_title.setText(title);
+            progressBar.setVisibility(GONE);
             setProfileIcon(fab_menu, url);
+            if (Objects.requireNonNull(ninjaWebView.getTitle()).isEmpty()) appBar_title.setText(url);
+            else appBar_title.setText(ninjaWebView.getTitle());
+            FaviconHelper.setFavicon(context, contentView, url, R.id.menu_icon, R.drawable.icon_image_broken);
+            TextView overflowURL = findViewById(R.id.appbar_URL);
             overflowURL.setText(url);
             HelperUnit.setHighLightedText(context, overflowURL, url, HelperUnit.domain(url));
-            FaviconHelper.setFavicon(context, contentView, url, R.id.menu_icon, R.drawable.icon_image_broken);
         }
     }
 
@@ -1013,18 +1134,26 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         try {dialog_overflow.cancel();} catch (Exception e) {Log.i(TAG, "Overflow already closed:" + e);}
     }
 
-    // Hilfsmethode, um nur ausgewählte Items aus dem lokalen Speicher zu holen
     private List<MenuItem> loadSelectedFromStorage() {
         SharedPreferences prefs = getSharedPreferences(Settings_Menu.PREF_NAME, Context.MODE_PRIVATE);
-        String json = prefs.getString(Settings_Menu.KEY_LIST, null);
+        String jsonString = prefs.getString(Settings_Menu.KEY_LIST, null);
         List<MenuItem> selected = new ArrayList<>();
-        if (json != null) {
-            Type type = new TypeToken<ArrayList<MenuItem>>() {}.getType();
-            List<MenuItem> masterList = new Gson().fromJson(json, type);
-            for (MenuItem item : masterList) {
-                if (item.isSelected()) {
-                    selected.add(item);
+
+        if (jsonString != null) {
+            try {
+                org.json.JSONArray jsonArray = new org.json.JSONArray(jsonString);
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    org.json.JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    if (jsonObject.optBoolean("isSelected", true)) {
+                        selected.add(new MenuItem(
+                                jsonObject.optString("title", ""),
+                                jsonObject.optInt("iconResId", 0),
+                                true
+                        ));
+                    }
                 }
+            } catch (org.json.JSONException e) {
+                android.util.Log.e("Storage", "Fehler beim Laden der Selektionen", e);
             }
         }
         return selected;
@@ -1079,10 +1208,23 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         });
 
         String jsonReceived = getIntent().getStringExtra("SELECTED_DATA");
-        List<MenuItem> selectedItemsList;
+        List<MenuItem> selectedItemsList = new ArrayList<>();
+
         if (jsonReceived != null) {
-            Type type = new TypeToken<ArrayList<MenuItem>>() {}.getType();
-            selectedItemsList = new Gson().fromJson(jsonReceived, type);
+            try {
+                org.json.JSONArray jsonArray = new org.json.JSONArray(jsonReceived);
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    org.json.JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    selectedItemsList.add(new MenuItem(
+                            jsonObject.optString("title", ""),
+                            jsonObject.optInt("iconResId", 0),
+                            jsonObject.optBoolean("isSelected", true)
+                    ));
+                }
+            } catch (org.json.JSONException e) {
+                android.util.Log.e("Intent", "Fehler beim Entpacken der Intent-Daten", e);
+                selectedItemsList = loadSelectedFromStorage();
+            }
         } else {
             selectedItemsList = loadSelectedFromStorage();
         }
@@ -1094,6 +1236,59 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         } else {
             recyclerView.setLayoutManager(new GridLayoutManager(this, 1));
         }
+
+        for (MenuItem item : selectedItemsList) {
+            String aktuellerTitel = item.getTitle();
+            if (aktuellerTitel == null) continue;
+            if (aktuellerTitel.equals(getString(R.string.menu_openFav))) {
+                item.setIconResId(R.drawable.icon_fav);
+            } else if (aktuellerTitel.equals(getString(R.string.main_menu_new_tabOpen))) {
+                item.setIconResId(R.drawable.icon_tab_plus);
+            } else if (aktuellerTitel.equals(getString(R.string.main_menu_new_tab))) {
+                item.setIconResId(R.drawable.icon_tab_background);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_other_searchSite))) {
+                item.setIconResId(R.drawable.icon_search_site);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_closeTab))) {
+                item.setIconResId(R.drawable.icon_tab_remove);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_reload))) {
+                item.setIconResId(R.drawable.icon_refresh);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_share_link))) {
+                item.setIconResId(R.drawable.icon_share);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_shareClipboard))) {
+                item.setIconResId(R.drawable.icon_clipboard);
+            } else if (aktuellerTitel.equals(getString(R.string.dialog_postOnWebsite))) {
+                item.setIconResId(R.drawable.icon_post);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_save_bookmark))) {
+                item.setIconResId(R.drawable.icon_bookmark);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_save_pdf))) {
+                item.setIconResId(R.drawable.icon_file);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_save_as))) {
+                item.setIconResId(R.drawable.icon_menu_save);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_shareOpenWith))) {
+                item.setIconResId(R.drawable.icon_share_open_with);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_sc))) {
+                item.setIconResId(R.drawable.icon_home);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_download))) {
+                item.setIconResId(R.drawable.icon_download);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_quit))) {
+                item.setIconResId(R.drawable.icon_close);
+            } else if (aktuellerTitel.equals(getString(R.string.setting_label))) {
+                item.setIconResId(R.drawable.icon_settings);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_restart))) {
+                item.setIconResId(R.drawable.icon_restart);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_edit))) {
+                item.setIconResId(R.drawable.icon_edit);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_delete))) {
+                item.setIconResId(R.drawable.icon_delete);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_delete_entry))) {
+                item.setIconResId(R.drawable.icon_delete_alt);
+            } else if (aktuellerTitel.equals(getString(R.string.app_help))) {
+                item.setIconResId(R.drawable.icon_help);
+            } else if (aktuellerTitel.equals(getString(R.string.menu_fav))) {
+                item.setIconResId(R.drawable.icon_fav_plus);
+            }
+        }
+
 
         @SuppressLint("NonConstantResourceId")
         AdapterMenu adapter = new AdapterMenu(selectedItemsList, item -> {
@@ -1137,10 +1332,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
                     break;
                 case R.drawable.icon_menu_save:
                     assert url != null;
-                    if (url.startsWith("data:")) {
-                        DataURIParser dataURIParser = new DataURIParser(url);
-                        HelperUnit.saveDataURI(activity, dataURIParser, dialog_overflow);
-                    } else HelperUnit.saveAs(activity, url, null, dialog_overflow);
+                    NinjaDownloadListener.saveAs(activity, url, null, dialog_overflow);
                     break;
                 case R.drawable.icon_fav_plus:
                     sp.edit().putString("favoriteURL", url).apply();
@@ -1925,7 +2117,6 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         if (dialogOverview.isShowing()) {
             dialogOverview.cancel();
         }
-        ninjaWebView.stopLoading();
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
         View dialogView = View.inflate(context, R.layout.custom_redirects_list, null);
         RecyclerView recyclerView = dialogView.findViewById(R.id.redirects_recycler);
@@ -1946,15 +2137,15 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         builder.setTitle(R.string.custom_searches_title);
         builder.setMessage(text);
         builder.setIcon(R.drawable.icon_search);
-        builder.setNegativeButton(R.string.create_new, ((dialogInterface, i) -> {
+        builder.setPositiveButton(R.string.create_new, ((dialogInterface, i) -> {
             MaterialAlertDialogBuilder builderAddCustom = new MaterialAlertDialogBuilder(context);
             View dialogViewAddCustom = View.inflate(context, R.layout.create_new_searches, null);
             TextInputEditText source = dialogViewAddCustom.findViewById(R.id.source);
             TextInputEditText target = dialogViewAddCustom.findViewById(R.id.target);
             builderAddCustom.setTitle(R.string.custom_searches_title);
             builderAddCustom.setIcon(R.drawable.icon_search);
-            builderAddCustom.setPositiveButton(R.string.app_cancel, null);
-            builderAddCustom.setNegativeButton(R.string.app_ok, ((dialogInterface2, i2) -> {
+            builderAddCustom.setNegativeButton(R.string.app_cancel, null);
+            builderAddCustom.setPositiveButton(R.string.app_ok, ((dialogInterface2, i2) -> {
                 String sourceText = Objects.requireNonNull(source.getText()).toString();
                 String targetText = Objects.requireNonNull(target.getText()).toString();
                 if (targetText.isEmpty() || sourceText.isEmpty()) return;
@@ -1970,7 +2161,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             dialogCustomSearchesNew.show();
             HelperUnit.setupDialog(context, dialogCustomSearchesNew);
         }));
-        builder.setPositiveButton(R.string.app_cancel, ((dialogInterface, i) -> dialogCustomSearches.cancel()));
+        builder.setNegativeButton(R.string.app_cancel, ((dialogInterface, i) -> dialogCustomSearches.cancel()));
         builder.setView(dialogView);
         dialogCustomSearches = builder.create();
         dialogCustomSearches.show();
@@ -1995,23 +2186,15 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         sp.edit().putString("openTabs", TextUtils.join("‚‗‚", openTabs)).apply();
     }
     private void setCustomFullscreen(boolean fullscreen) {
+        Window window = getWindow();
+        WindowCompat.setDecorFitsSystemWindows(window, !fullscreen);
+        WindowInsetsControllerCompat insetsController = WindowCompat.getInsetsController(window, window.getDecorView());
         if (fullscreen) {
-            if (SDK_INT >= Build.VERSION_CODES.R) {
-                final WindowInsetsController insetsController = getWindow().getInsetsController();
-                if (insetsController != null) {
-                    insetsController.hide(WindowInsets.Type.statusBars());
-                    insetsController.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-                }
-            }
-            else getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN); }
-        else {
-            if (SDK_INT >= Build.VERSION_CODES.R) {
-                final WindowInsetsController insetsController = getWindow().getInsetsController();
-                if (insetsController != null) {
-                    insetsController.show(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
-                    insetsController.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE); }
-            }
-            else getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN); }
+            insetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            insetsController.hide(WindowInsetsCompat.Type.systemBars());
+        } else {
+            insetsController.show(WindowInsetsCompat.Type.systemBars());
+        }
     }
     private void copyLink(String url) {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
@@ -2375,14 +2558,14 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             filePathCallback = null;
             getIntent().setAction("");
         } else if (Intent.ACTION_VIEW.equals(action) && dataUri != null) {
+            getIntent().setAction("");
             String fileName = null;
-            // 1. Echten Dateinamen aus der URI ermitteln
             if ("content".equals(dataUri.getScheme())) {
                 try (Cursor cursor = getContentResolver().query(dataUri, null, null, null, null)) {
                     if (cursor != null && cursor.moveToFirst()) {
                         int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                         if (nameIndex != -1) {
-                            fileName = cursor.getString(nameIndex); // z.B. "notizen.org"
+                            fileName = cursor.getString(nameIndex);
                         }
                     }
                 } catch (Exception e) {
@@ -2391,32 +2574,33 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             } else if ("file".equals(dataUri.getScheme())) {
                 fileName = dataUri.getLastPathSegment();
             }
-            // 2. Dateiendung prüfen und filtern
-            if (fileName != null) {
-                String extension = "";
-                int lastDot = fileName.lastIndexOf('.');
-                if (lastDot >= 0) {
-                    extension = fileName.substring(lastDot + 1).toLowerCase();
-                }
-                // Liste aller erlaubten Text- und Code-Endungen
-                List<String> allowedExtensions = Arrays.asList(
-                        "html", "txt", "xml", "json", "java", "md", "js", "css", "sh", "py", "org", "gpx"
-                );
-                if (!allowedExtensions.contains(extension)) {
-                    Toast.makeText(this, getString(R.string.dialog_supported), Toast.LENGTH_SHORT).show();
-                    return;
-                }
+            if (fileName == null) {
+                fileName = "Unbekannte_Datei.txt";
             }
+
+            String extension = "";
+            int lastDot = fileName.lastIndexOf('.');
+            if (lastDot >= 0) {
+                extension = fileName.substring(lastDot + 1).toLowerCase();
+            }
+
+            List<String> allowedExtensions = Arrays.asList(
+                    "html", "txt", "xml", "json", "java", "md", "js", "css", "sh", "py", "org", "gpx"
+            );
+
+            if (!allowedExtensions.contains(extension)) {
+                Toast.makeText(this, getString(R.string.dialog_supported), Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // 3. Fehlerfreie Pfad-Generierung für content:// und file://
             String filePath = dataUri.getPath();
-            // Liefert den Pfad (z. B. /storage/emulated/0/Download/file.txt)
-            // Falls der Pfad über einen ContentProvider verschlüsselt ist, nutzen wir die URI als Identifikator
             String displayPath = filePath != null ? filePath : dataUri.toString();
-            // Die virtuelle oder echte Datei-URL für die WebView (wichtig für webView.getUrl())
-            String virtualFileUrl = filePath != null ? "file://" + filePath : dataUri.toString();
+            // Korrektur: Wenn die URI bereits eine Content-URI ist, belassen wir sie so, statt "file://" davorzuklatschen
+            String virtualFileUrl = "file".equals(dataUri.getScheme()) && filePath != null ? "file://" + filePath : dataUri.toString();
             String fileContent = readTextFromUri(this, dataUri);
+
             if (!fileContent.trim().isEmpty()) {
-                if (mimeType != null && mimeType.contains("html")) {
-                    // HTML über die sichere Cache-Methode laden (damit CSS/Bilder funktionieren)
+                if ("html".equals(extension) || (mimeType != null && mimeType.contains("html"))) {
                     File localHtmlFile = copyHtmlToCache(this, dataUri);
                     if (localHtmlFile != null && localHtmlFile.exists()) {
                         addAlbum(fileName, "file://" + localHtmlFile.getAbsolutePath(), true);
@@ -2429,11 +2613,10 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
                     // UNIVERSAL-METHODE für XML, JSON, TXT, JAVA, MD, etc.
                     String langClass = "language-txt";
                     String formattedContent = fileContent;
-                    // Mime-Type oder Inhalts-Erkennung für das Syntax-Highlighting
-                    if (mimeType != null && (mimeType.contains("xml") || fileContent.trim().startsWith("<"))) {
+                    // NEU: Inhalts- und Endungserkennung basierend auf der extrahierten Extension
+                    if ("xml".equals(extension) || fileContent.trim().startsWith("<")) {
                         langClass = "language-xml";
-                    } else if (mimeType != null && (mimeType.contains("json") || mimeType.contains("javascript"))
-                            || fileContent.trim().startsWith("{") || fileContent.trim().startsWith("[")) {
+                    } else if ("json".equals(extension) || fileContent.trim().startsWith("{") || fileContent.trim().startsWith("[")) {
                         langClass = "language-json";
                         try {
                             if (fileContent.trim().startsWith("{")) {
@@ -2446,22 +2629,24 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
                         } catch (Exception ignored) {
                             NinjaToast.show(context, getString(R.string.app_error));
                         }
-                    } else {
-                        assert fileName != null;
-                        if (fileName.endsWith(".java")) {
-                            langClass = "language-java";
-                        } else if (fileName.endsWith(".md")) {
-                            langClass = "language-markdown";
-                        }
+                    } else if ("java".equals(extension)) {
+                        langClass = "language-java";
+                    } else if ("md".equals(extension)) {
+                        langClass = "language-markdown";
+                    } else if ("js".equals(extension)) {
+                        langClass = "language-javascript";
+                    } else if ("css".equals(extension)) {
+                        langClass = "language-css";
+                    } else if ("sh".equals(extension)) {
+                        langClass = "language-bash";
+                    } else if ("py".equals(extension)) {
+                        langClass = "language-python";
                     }
                     // HTML-Sonderzeichen maskieren
                     String escapedContent = formattedContent.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
-                    // Das universelle HTML-Gerüst mit Dateiname, Pfad und responsivem Code-Block
-                    // NEU: Das <title>-Tag sorgt dafür, dass ninjaWebView.getTitle() den Dateinamen liefert
                     String htmlWrapper = "<html><head>"
                             + "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
                             + "<title>" + fileName + "</title>"
-                            + "<link rel='stylesheet' href='https://cloudflare.com' />"
                             + "<style>"
                             + "  body { margin: 0; padding: 15px; background: #fafafa; font-family: sans-serif; color: #333; }"
                             + "  .file-info { background: #eaeaea; padding: 10px; border-radius: 5px; font-size: 12px; margin-bottom: 15px; border-left: 4px solid #007bb6; word-break: break-all; }"
@@ -2475,12 +2660,10 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
                             + "<pre class='" + langClass + "'><code class='" + langClass + "'>"
                             + escapedContent
                             + "</code></pre>"
-                            + "<script src='https://cloudflare.com'></script>"
-                            + "<script src='https://cloudflare.com'></script>"
                             + "</body></html>";
+
                     addAlbum(fileName, virtualFileUrl, true);
                     ninjaWebView.getSettings().setDefaultTextEncodingName("utf-8");
-                    // WICHTIG: virtualFileUrl als BaseURL übergeben zwingt webView.getUrl() diesen Pfad anzuzeigen
                     ninjaWebView.loadDataWithBaseURL(virtualFileUrl, htmlWrapper, "text/html", "UTF-8", null);
                 }
             } else {
@@ -2492,14 +2675,16 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         } else if ("postLink".equals(action)) {
             sp.edit().putBoolean("show_overview", false).apply();
             getIntent().setAction("");
+            if (BrowserContainer.size() < 1) {
+                addAlbum(getString(R.string.app_name), sp.getString("favoriteURL", "https://codeberg.org/Gaukler_Faun/FOSS_Browser/wiki"), true);
+            }
             postLink(url, null);
         } else if ("customSearches".equals(action)) {
             sp.edit().putBoolean("show_overview", false).apply();
             getIntent().setAction("");
-            if (BrowserContainer.size() == 0) {
-                addAlbum(null, "", true);
+            if (BrowserContainer.size() < 1) {
+                addAlbum(getString(R.string.app_name), sp.getString("favoriteURL", "https://codeberg.org/Gaukler_Faun/FOSS_Browser/wiki"), true);
             }
-            assert url != null;
             showDialogCustomSearches(url);
         } else if (intent.getAction() != null && intent.getAction().equals(Intent.ACTION_PROCESS_TEXT)) {
             sp.edit().putBoolean("show_overview", false).apply();
@@ -2517,6 +2702,8 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             sp.edit().putBoolean("show_overview", false).apply();
             getIntent().setAction("");
             addAlbum(null, url, true);
+        } else if (BrowserContainer.size() < 1) {
+            addAlbum(getString(R.string.app_name), sp.getString("favoriteURL", "https://codeberg.org/Gaukler_Faun/FOSS_Browser/wiki"), true);
         }
     }
     private String readTextFromUri(Context context, Uri uri) {
@@ -2537,25 +2724,33 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
 
     @SuppressLint("ClickableViewAccessibility")
     private void setWebView(String title, final String url, final boolean foreground) {
+
+        final int[] lastScrollY = {0};
+        final Handler scrollHandler = new Handler(Looper.getMainLooper());
+        LinearLayout appBarButtons = findViewById(R.id.appBar_buttons);
+
+        final Runnable scrollRunnable = () -> {
+            int currentScrollY = ninjaWebView.getScrollY();
+            if (lastScrollY[0] > currentScrollY && !sp.getBoolean("hideToolbar", false)) {
+                ObjectAnimator animAppBar = ObjectAnimator.ofFloat(appBar, View.TRANSLATION_Y, 0f);
+                ObjectAnimator animButtons = ObjectAnimator.ofFloat(appBarButtons, View.TRANSLATION_Y, 0f);
+                AnimatorSet animatorSet = new AnimatorSet();
+                animatorSet.playTogether(animAppBar, animButtons);
+                animatorSet.setDuration(250);
+                animatorSet.start();
+            } else if (lastScrollY[0] < currentScrollY) {
+                ObjectAnimator animAppBar = ObjectAnimator.ofFloat(appBar, View.TRANSLATION_Y, 275f);
+                animAppBar.setDuration(250);
+                animAppBar.start();
+            }
+            lastScrollY[0] = currentScrollY;
+        };
+
         ninjaWebView = new NinjaWebView(context);
         ninjaWebView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-            final Handler handler = new Handler();
-            handler.postDelayed(() -> {
-                if (scrollY > ninjaWebView.getScrollY()){
-                    ObjectAnimator animation = ObjectAnimator.ofFloat(appBar, "translationY", 0f);
-                    animation.setDuration(250);
-                    animation.start();
-                    LinearLayout appBarButtons = findViewById(R.id.appBar_buttons);
-                    ObjectAnimator animationBack = ObjectAnimator.ofFloat(appBarButtons, "translationY", 0f);
-                    animationBack.setDuration(250);
-                    animationBack.start();
-                } else if (scrollY < ninjaWebView.getScrollY()) {
-                    ObjectAnimator animation = ObjectAnimator.ofFloat(appBar, "translationY", 275f);
-                    animation.setDuration(250);
-                    animation.start();
-                }
-                Log.d("Handler", "Running Handler");
-            }, 50);
+            scrollHandler.removeCallbacks(scrollRunnable);
+            lastScrollY[0] = oldScrollY;
+            scrollHandler.postDelayed(scrollRunnable, 50);
         });
 
         ninjaWebView.setOnLongClickListener(v -> {
@@ -2595,15 +2790,22 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
                     runOnUiThread(() -> {
                         String textToShow;
                         assert finalValue != null;
-                        if (finalValue.isEmpty() || finalValue.equals("null") || finalValue.equals("ERR_NOT_FOUND")) {
-                            textToShow = context.getString(R.string.app_error) + ": ERR_ALT_NOT_FOUND";
-                            NinjaToast.show(this, textToShow);
-                        } else if (finalValue.equals("ERR_NO_ALT_ATTR")) {
-                            textToShow = context.getString(R.string.app_error) + ": ERR_NO_ALT_ATTR";
-                        } else if (finalValue.equals("ERR_ALT_EMPTY")) {
-                            textToShow = context.getString(R.string.app_error) + ": ERR_ALT_EMPTY";
-                        } else {
-                            textToShow = finalValue.replace("\n", " ").replace("\r", " ");
+                        switch (finalValue) {
+                            case "":
+                            case "null":
+                            case "ERR_NOT_FOUND":
+                                textToShow = context.getString(R.string.app_error) + ": ERR_ALT_NOT_FOUND";
+                                NinjaToast.show(this, textToShow);
+                                break;
+                            case "ERR_NO_ALT_ATTR":
+                                textToShow = context.getString(R.string.app_error) + ": ERR_NO_ALT_ATTR";
+                                break;
+                            case "ERR_ALT_EMPTY":
+                                textToShow = context.getString(R.string.app_error) + ": ERR_ALT_EMPTY";
+                                break;
+                            default:
+                                textToShow = finalValue.replace("\n", " ").replace("\r", " ");
+                                break;
                         }
                         HelperUnit.showCustomSnackbarWithTwoActions(
                                 this, ninjaWebView, null,

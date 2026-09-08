@@ -6,7 +6,6 @@
     <string name="app_cancel">لغو</string>
     <string name="app_done">انجام شد</string>
     <string name="app_error">خطا</string>
-    <string name="app_warning">هشدار</string>
     <string name="app_permission">برای استفاده از این قابلیت باید اجازه دسترسی بدهید و سپس برنامه را مجدد باز کنید.</string>
     <string name="list_empty">لیست خالی می باشد</string>
     <string name="album_title_bookmarks">نشانک ها</string>
@@ -72,7 +71,6 @@
     <string name="setting_title_javascript">جاواسکریپت</string>
     <string name="setting_title_adblock">مسدودسازی تبلیغات</string>
     <string name="setting_title_location">مکان جاری</string>
-    <string name="data_summary">همه فایلها به پوشه \"Documents/browser_backup/\" کارت حافظه شما صادر می شوند.</string>
     <string name="clear_title_quit">پاک سازی هنگام خروج از برنامه</string>
     <string name="clear_title_cache">پاک‌سازی حافظه پنهان</string>
     <string name="setting_title_ui">رفتار/محیط کاربری</string>
@@ -112,7 +110,6 @@
     <string name="toast_quit">آیا مایل به خروج از \"FOSS Browser\" هستید؟</string>
     <string name="toast_quit_TAB">می خواهید برگه ها را ببندید؟</string>
     <string name="toast_unsecured">وبسایت مورد نظر از ارتباط نا امن (http) استفاده می کند.آیامایل به انتقال به نسخه امن (https) وبسایت هستید؟</string>
-    <string name="toast_backup">این پشتیبان گیری روی نسخه ی قبلی بازنویسی خواهد شد،در هرحال انجام شود؟</string>
     <string name="dialog_postOnWebsiteHint">آدرس اینترنتی برای باز کردن برای استفاده بعدی ذخیره می شود.</string>
     <string name="dialog_postOnWebsite">در وب سایت ارسال کنید</string>
     <string name="menu_desktopView">DesktopPC نماي</string>
@@ -148,7 +145,6 @@
     <string name="privacy_redirect_title">بازراسته‌سازی‌ها</string>
     <string name="setting_title_profiles_standard_always">برای دامنه‌ها و زبانه‌های جدید به پروفایل استاندارد سوئیچ کنید.</string>
     <string name="setting_title_cookie_thirdParty">کوکی‌های شخص ثالث</string>
-    <string name="setting_backup_ext">پشتیبان‌گیری هنگام خروج</string>
     <string name="setting_backup_sumDatabase">شروع، نشانک‌ها، تاریخچه</string>
     <string name="setting_backup_sumSettings">تنظیمات برنامه و وب‌سایت</string>
     <string name="title_appDatabase">پایگاه داده</string>

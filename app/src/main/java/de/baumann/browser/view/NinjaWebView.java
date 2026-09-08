@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
 import android.webkit.WebBackForwardList;
+import android.webkit.WebHistoryItem;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Button;
@@ -98,7 +99,7 @@ public class NinjaWebView extends WebView implements AlbumController {
         this.album = new AdapterTabs(this.context, this, browserController);
         this.webViewClient = new NinjaWebViewClient(this);
         this.webChromeClient = new NinjaWebChromeClient(this);
-        this.downloadListener = new NinjaDownloadListener(this.context, this);
+        this.downloadListener = new NinjaDownloadListener( this);
 
         initWebView();
         initAlbum();
@@ -141,9 +142,8 @@ public class NinjaWebView extends WebView implements AlbumController {
 
         webSettings.setSupportMultipleWindows(true);
         webSettings.setAllowFileAccess(true);
-        webSettings.setAllowFileAccessFromFileURLs(true);
-        webSettings.setAllowUniversalAccessFromFileURLs(true);
         webSettings.setTextZoom(Integer.parseInt(Objects.requireNonNull(sp.getString("sp_fontSize", "100"))));
+        webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 
         profile = sp.getString("profile", "profileStandard");
         String profileOriginal = profile;
@@ -156,20 +156,19 @@ public class NinjaWebView extends WebView implements AlbumController {
             WebSettingsCompat.setAlgorithmicDarkeningAllowed(webSettings, sp.getBoolean(profile + "_night", true));
         }
 
-        String desktopUserAgent = "Mozilla/5.0 (X11; Linux " + System.getProperty("os.arch") + ")";
-        String mobileUserAgent = WebSettings.getDefaultUserAgent(context);
-
-        //Override UserAgent if own UserAgent is defined
+        String desktopUserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
+        String mobileUserAgent  = WebSettings.getDefaultUserAgent(context);
         if (!sp.contains("userAgentSwitch")) {
-            //if new switch_text_preference has never been used initialize the switch
             if (Objects.requireNonNull(sp.getString("sp_userAgent", "")).isEmpty()) {
                 sp.edit().putBoolean("userAgentSwitch", false).apply();
-            } else sp.edit().putBoolean("userAgentSwitch", true).apply();
+            } else {
+                sp.edit().putBoolean("userAgentSwitch", true).apply();
+            }
         }
-
         String ownUserAgent = sp.getString("sp_userAgent", "");
-        if (!ownUserAgent.isEmpty() && (sp.getBoolean("userAgentSwitch", false))) mobileUserAgent = ownUserAgent;
-
+        if (!ownUserAgent.isEmpty() && sp.getBoolean("userAgentSwitch", false)) {
+            mobileUserAgent = ownUserAgent;
+        }
         if (sp.getBoolean(profile + "_desktop", false)) {
             webSettings.setUserAgentString(desktopUserAgent);
             getSettings().setUseWideViewPort(true);
@@ -182,9 +181,7 @@ public class NinjaWebView extends WebView implements AlbumController {
             this.setInitialScale(0);
         }
 
-        webSettings.setDomStorageEnabled(sp.getBoolean(profile + "_dom", false));
-
-        webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
+        webSettings.setDomStorageEnabled(sp.getBoolean(profile + "_dom", true));
         webSettings.setMediaPlaybackRequiresUserGesture(sp.getBoolean(profile + "_saveData", true));
         webSettings.setBlockNetworkImage(!sp.getBoolean(profile + "_images", true));
         webSettings.setGeolocationEnabled(sp.getBoolean(profile + "_location", false));
@@ -199,19 +196,13 @@ public class NinjaWebView extends WebView implements AlbumController {
 
         try {
             CookieManager manager = CookieManager.getInstance();
-            if (sp.getBoolean(profile + "_cookies", true)) {
-                manager.setAcceptCookie(true);
-                manager.getCookie(url);
-            } else manager.setAcceptCookie(false);
-            if (sp.getBoolean(profile + "_cookiesThirdParty", false)) {
-                manager.setAcceptThirdPartyCookies(this, true);
-                manager.getCookie(url);
-            } else manager.setAcceptThirdPartyCookies(this, false);
+            manager.setAcceptCookie(sp.getBoolean(profile + "_cookies", true));
+            manager.setAcceptThirdPartyCookies(this, sp.getBoolean(profile + "_cookiesThirdParty", false));
+            manager.getCookie(url);
         } catch (Exception e) {
-            Log.i(TAG, "Error loading cookies:" + e);
+            Log.i(TAG, "Error loading cookies: " + e);
         }
         this.addJavascriptInterface(new WebAppInterface(context), "AndroidInterface");
-
         profile = profileOriginal;
     }
 
@@ -286,19 +277,20 @@ public class NinjaWebView extends WebView implements AlbumController {
         super.stopLoading();
     }
 
-    public synchronized void reloadWithoutInit() {  //needed for camera usage without deactivating "save_data"
-        stopped = false;
-        super.reload();
-    }
-
+    @SuppressLint("ApplySharedPref")
     public synchronized void goBack() {
         WebBackForwardList mWebBackForwardList = this.copyBackForwardList();
-        if (mWebBackForwardList.getCurrentIndex() > 0) {
-            stopLoading();
-            String historyUrl = mWebBackForwardList.getItemAtIndex(mWebBackForwardList.getCurrentIndex()-1).getUrl();
-            initPreferences(historyUrl);
-            if (!Objects.equals(HelperUnit.domain(this.getUrl()), HelperUnit.domain(historyUrl)) && sp.getBoolean("sp_standard_always", true)) {
-                sp.edit().putString("profile", "profileStandard").apply();
+        int currentIndex = mWebBackForwardList.getCurrentIndex();
+        if (currentIndex > 0) {
+            WebHistoryItem historyItem = mWebBackForwardList.getItemAtIndex(currentIndex - 1);
+            if (historyItem != null) {
+                String historyUrl = historyItem.getUrl();
+                initPreferences(historyUrl);
+                String currentUrl = this.getUrl();
+                if (currentUrl != null && !Objects.equals(HelperUnit.domain(currentUrl), HelperUnit.domain(historyUrl))
+                        && sp.getBoolean("sp_standard_always", true)) {
+                    sp.edit().putString("profile", "profileStandard").commit();
+                }
             }
         }
         super.goBack();
@@ -329,8 +321,7 @@ public class NinjaWebView extends WebView implements AlbumController {
         }
 
         favicon = null;
-        //stopped = false;
-        setFavicon(favicon);
+        stopped = false;
 
         listStandard = new List_standard(context);
         profile = sp.getString("profile", "profileStandard");

@@ -13,16 +13,27 @@
         android:layout_height="wrap_content"
         android:scrollbars="vertical">
 
-        <TextView
-            android:id="@+id/custom_snackbar_text"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="#FFFFFF" />
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/custom_snackbar_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/custom_snackbar_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF" />
+
+        </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
 
-
-    <!-- Container für die Knöpfe -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -30,18 +41,16 @@
         android:orientation="horizontal"
         android:gravity="end|center_vertical">
 
-        <!-- Erstes Icon-Button -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/custom_btn_one"
+            android:id="@+id/custom_btn_two"
             style="?attr/materialIconButtonStyle"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginEnd="8dp"
             app:iconSize="20dp" />
 
-        <!-- Zweites Icon-Button -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/custom_btn_two"
+            android:id="@+id/custom_btn_one"
             style="?attr/materialIconButtonStyle"
             android:layout_width="40dp"
             android:layout_height="40dp"

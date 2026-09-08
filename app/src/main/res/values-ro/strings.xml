@@ -6,7 +6,6 @@
     <string name="app_cancel">Anulează</string>
     <string name="app_done">Gata</string>
     <string name="app_error">Eroare</string>
-    <string name="app_warning">Avertizare</string>
     <string name="app_permission">Pentru a utiliza această caracteristică trebuie să acorzi permisiunea. După aceea, repornește aplicația.</string>
     <string name="list_empty">Lista este goală</string>
     <string name="album_title_bookmarks">Marcaje</string>
@@ -72,7 +71,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">AdBlock</string>
     <string name="setting_title_location">Locație</string>
-    <string name="data_summary">Toate fișierele vor fi exportate în dosarul \"Documente/browser_backup/\" de pe cardul SD.</string>
     <string name="clear_title_quit">Curățare la ieșirea din aplicație</string>
     <string name="clear_title_cache">Golire memorie cache</string>
     <string name="setting_title_ui">Comportament/IU</string>
@@ -112,7 +110,6 @@
     <string name="toast_quit">Dorești să închizi „Browser-ul FOSS”?</string>
     <string name="toast_quit_TAB">Vrei să închizi FILA?</string>
     <string name="toast_unsecured">Site-ul folosește o conexiune nesecurizată („http”). Încerci o conexiune securizată („https”)?</string>
-    <string name="toast_backup">Date de rezervă\? Aceasta va suprascrie copia de rezervă existentă.</string>
     <string name="dialog_postOnWebsiteHint">URL pentru deschidere. Va fi salvat pentru următoarea utilizare.</string>
     <string name="dialog_postOnWebsite">Postează pe site</string>
     <string name="menu_desktopView">Vizualizare desktop</string>
@@ -147,7 +144,6 @@
     <string name="album_title_bookmarks_html">Marcaje (HTML)</string>
     <string name="setting_title_savedWebSites">Site-uri web salvate</string>
     <string name="setting_title_dynColors">Culori dinamice</string>
-    <string name="setting_backup_ext">Backup la ieșire</string>
     <string name="setting_backup_sumDatabase">Startsite, Marcaje, istorie</string>
     <string name="privacy_redirect_use">Utilizați redirecționări</string>
     <string name="privacy_redirect_title">Redirecționări</string>

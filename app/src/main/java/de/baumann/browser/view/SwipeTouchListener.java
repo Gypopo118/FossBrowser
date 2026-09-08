@@ -1,88 +1,71 @@
 package de.baumann.browser.view;
 
-import static android.content.ContentValues.TAG;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-
-public class SwipeTouchListener implements OnTouchListener {
+public class SwipeTouchListener implements View.OnTouchListener {
 
     private final GestureDetector gestureDetector;
 
-    public SwipeTouchListener(Context ctx) {
-        gestureDetector = new GestureDetector(ctx, new GestureListener());
+    public SwipeTouchListener(@NonNull Context ctx) {
+        this.gestureDetector = new GestureDetector(ctx, new GestureListener());
     }
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        if (event == null) return false;
         return gestureDetector.onTouchEvent(event);
     }
+    public void onSwipeRight() {}
+    public void onSwipeLeft() {}
+    public void onSwipeTop() {}
+    public void onSwipeBottom() {}
 
-    // ↓ do not remove, needed for swipe listener of the "navigation button"
-    public void onSwipeRight() {
-    }
-
-    public void onSwipeLeft() {
-    }
-
-    public void onSwipeTop() {
-    }
-
-    public void onSwipeBottom() {
-    }
-
-    @SuppressWarnings("NullableProblems")
     private final class GestureListener extends GestureDetector.SimpleOnGestureListener {
-
         private static final int SWIPE_THRESHOLD = 100;
         private static final int SWIPE_VELOCITY_THRESHOLD = 100;
 
-        @SuppressWarnings("NullableProblems")
         @Override
-        public boolean onDown(MotionEvent e) {
+        public boolean onDown(@NonNull MotionEvent e) {
+            // WICHTIG: Bleibt false, damit Klicks & Long-Clicks in der Activity landen!
             return false;
         }
 
         @Override
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-
+        public boolean onFling(@Nullable MotionEvent e1, @Nullable MotionEvent e2, float velocityX, float velocityY) {
+            if (e1 == null || e2 == null) return false;
             try {
-                if (e1!=null && e2!=null) {
-                    try {
-                        float diffY = e2.getY() - e1.getY();
-                        float diffX = e2.getX() - e1.getX();
-                        if (Math.abs(diffX) > Math.abs(diffY)) {
-                            if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
-                                if (diffX > 0) {
-                                    onSwipeRight();
-                                } else {
-                                    onSwipeLeft();
-                                }
-                            }
-                        } else if (Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
-                            if (diffY > 0) {
-                                onSwipeBottom();
-                            } else {
-                                onSwipeTop();
-                            }
+                float diffY = e2.getY() - e1.getY();
+                float diffX = e2.getX() - e1.getX();
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                        if (diffX > 0) {
+                            onSwipeRight();
+                        } else {
+                            onSwipeLeft();
                         }
-                    } catch (Exception exception) {
-                        Log.i("FOSS Browser", "onFling:" + exception);
+                        return true;
                     }
                 }
+                else if (Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
+                    if (diffY > 0) {
+                        onSwipeBottom();
+                    } else {
+                        onSwipeTop();
+                    }
+                    return true;
+                }
             } catch (Exception e) {
-                Log.v(TAG, "Failed to swipe");
+                Log.e("FOSS Browser", "Gesten-Fehler: " + e.getMessage());
             }
-
-            assert e2 != null;
-            return super.onFling(e1, e2, velocityX, velocityY);
+            return false;
         }
     }
 }

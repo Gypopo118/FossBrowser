@@ -3,15 +3,11 @@ package de.baumann.browser.fragment;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-
-import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceManager;
-
 import java.util.Objects;
-
 import de.baumann.browser.R;
 import de.baumann.browser.preferences.BasePreferenceFragment;
 
@@ -19,10 +15,8 @@ public class Fragment_settings_Gesture extends BasePreferenceFragment implements
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-
         setPreferencesFromResource(R.xml.preference_gesture, rootKey);
-        Context context = getContext();
-        assert context != null;
+        Context context = requireContext();
 
         PreferenceManager.setDefaultValues(context, R.xml.preference_gesture, false);
         initSummary(getPreferenceScreen());
@@ -30,9 +24,9 @@ public class Fragment_settings_Gesture extends BasePreferenceFragment implements
 
     private void initSummary(Preference p) {
         if (p instanceof PreferenceGroup) {
-            PreferenceGroup pGrp = (PreferenceGroup) p;
-            for (int i = 0; i < pGrp.getPreferenceCount(); i++) {
-                initSummary(pGrp.getPreference(i));
+            PreferenceGroup group = (PreferenceGroup) p;
+            for (int i = 0; i < group.getPreferenceCount(); i++) {
+                initSummary(group.getPreference(i));
             }
         } else {
             updatePrefSummary(p);
@@ -41,17 +35,17 @@ public class Fragment_settings_Gesture extends BasePreferenceFragment implements
 
     private void updatePrefSummary(Preference p) {
         if (p instanceof ListPreference) {
-            ListPreference listPref = (ListPreference) p;
-            p.setSummary(listPref.getEntry());
+            p.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
         }
-        if (p instanceof EditTextPreference) {
-            EditTextPreference editTextPref = (EditTextPreference) p;
-            if (Objects.requireNonNull(p.getTitle()).toString().toLowerCase().contains("password")) {
-                p.setSummary("******");
-            } else {
-                p.setSummary(editTextPref.getText());
-            }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(final SharedPreferences sp, String key) {
+        if (key == null) return;
+        if (key.equals("sp_gestures_use") || key.equals("sp_gesture_action")) {
+            sp.edit().putInt("restart_changed", 1).apply();
         }
+        updatePrefSummary(findPreference(key));
     }
 
     @Override
@@ -64,14 +58,5 @@ public class Fragment_settings_Gesture extends BasePreferenceFragment implements
     public void onPause() {
         super.onPause();
         Objects.requireNonNull(getPreferenceScreen().getSharedPreferences()).unregisterOnSharedPreferenceChangeListener(this);
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(final SharedPreferences sp, String key) {
-        assert key != null;
-        if (key.equals("sp_gestures_use") || key.equals("sp_gesture_action")) {
-            sp.edit().putInt("restart_changed", 1).apply();
-        }
-        updatePrefSummary(findPreference(key));
     }
 }

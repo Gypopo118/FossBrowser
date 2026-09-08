@@ -6,7 +6,6 @@
     <string name="app_cancel">Cancelar</string>
     <string name="app_done">Listo</string>
     <string name="app_error">Error</string>
-    <string name="app_warning">Advertencia</string>
     <string name="app_permission">Debe conceder permiso para utilizar esta función.</string>
     <string name="list_empty">Lista vacía</string>
     <string name="album_title_bookmarks">Marcadores</string>
@@ -71,7 +70,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">Bloqueador de anuncios</string>
     <string name="setting_title_location">Ubicación</string>
-    <string name="data_summary">Todos los archivos se guardarán en el directorio \"Documents/browser_backup/\" de tu tarjeta SD.</string>
     <string name="clear_title_quit">Borrar al salir</string>
     <string name="clear_title_cache">Borrar la caché</string>
     <string name="setting_title_ui">Comportamiento/IU</string>
@@ -111,7 +109,6 @@
     <string name="toast_quit">¿Salir del \"Navegador FOSS\"?</string>
     <string name="toast_quit_TAB">¿Cerrar la pestaña?</string>
     <string name="toast_unsecured">La página web utiliza una conexión no segura (\"http\"). ¿Prueba con una conexión segura (\"https\")?</string>
-    <string name="toast_backup">¿Datos de la copia de seguridad\? Esto sobrescribirá la copia de seguridad existente.</string>
     <string name="dialog_postOnWebsiteHint">URL que se va a abrir. Se guardará para la próxima vez.</string>
     <string name="dialog_postOnWebsite">Publicar en la página web</string>
     <string name="menu_desktopView">Sitio para ordenador</string>
@@ -146,7 +143,6 @@
     <string name="app_permission_notification">Notificaciones</string>
     <string name="setting_title_savedWebSites">Páginas web guardadas</string>
     <string name="setting_title_dynColors">Colores dinámicos</string>
-    <string name="setting_backup_ext">Copia de seguridad al salir</string>
     <string name="privacy_redirect_use">Utilizar redireccionamientos</string>
     <string name="privacy_redirect_title">Redirecciones</string>
     <string name="setting_backup_sumDatabase">Página de inicio, favoritos, historial</string>
@@ -156,4 +152,6 @@
     <string name="app_restart">Al reiniciar</string>
     <string name="setting_menu">Menú</string>
     <string name="menu_delete_entry">Eliminar entrada</string>
+    <string name="dialog_content_resubmission">¿Reenviar los datos?</string>
+    <string name="dialog_supported">Solo se soportan archivos de texto.</string>
 </resources>

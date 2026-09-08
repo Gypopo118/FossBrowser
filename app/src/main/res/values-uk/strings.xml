@@ -6,7 +6,6 @@
     <string name="app_cancel">Скасувати</string>
     <string name="app_done">Готово</string>
     <string name="app_error">Помилка</string>
-    <string name="app_warning">Увага</string>
     <string name="app_permission">Щоб скористатися цією функцією, ви повинні надати дозвіл додатку.</string>
     <string name="list_empty">Список порожній</string>
     <string name="album_title_bookmarks">Закладки</string>
@@ -51,7 +50,7 @@
     <string name="dialog_title_download">Завантажити файл?</string>
     <string name="dialog_content_ssl_error">Сертифікат сайту не є довіреним. Все одно продовжити?</string>
     <string name="dialog_sortName">Сортувати за назвою</string>
-    <string name="dialog_sortIcon">Сортувати за значками</string>
+    <string name="dialog_sortIcon">Сортувати за фільтром</string>
     <string name="dialog_sortDate">Сортувати за датою</string>
     <string name="setting_label">Налаштування</string>
     <string name="setting_title_browser">Налаштування браузера</string>
@@ -72,7 +71,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">Блокування реклами</string>
     <string name="setting_title_location">Місце розташування</string>
-    <string name="data_summary">Усі файли буде збережено до каталогу «Documents/browser_backup/» на SD-карті.</string>
     <string name="clear_title_quit">Очищати при виході</string>
     <string name="clear_title_cache">Очистити кеш</string>
     <string name="setting_title_ui">Поведінка та інтерфейс</string>
@@ -112,7 +110,6 @@
     <string name="toast_quit">Закрити FOSS Браузер?</string>
     <string name="toast_quit_TAB">Закрити вкладку?</string>
     <string name="toast_unsecured">Цей сайт використовує незахищене з’єднання (http). Спробувати захищене з’єднання (https)?</string>
-    <string name="toast_backup">Зберегти дані? Буде перезаписано наявну резервну копію.</string>
     <string name="dialog_postOnWebsiteHint">URL для відкриття. Буде збережено для наступного використання.</string>
     <string name="dialog_postOnWebsite">Публікувати на сайті</string>
     <string name="menu_desktopView">Комп’ютерна версія</string>
@@ -147,7 +144,6 @@
     <string name="setting_backup_sumDatabase">Домашня сторінка, закладки, історія</string>
     <string name="setting_backup_sumSettings">Налаштування додатка і сайтів</string>
     <string name="setting_title_savedWebSites">Збережені вебсайти</string>
-    <string name="setting_backup_ext">Резервне копіювання при виході</string>
     <string name="album_title_bookmarks_html">Закладки (HTML)</string>
     <string name="setting_title_dynColors">Динамічні кольори</string>
     <string name="privacy_redirect_use">Використовувати перенаправлення</string>
@@ -156,4 +152,6 @@
     <string name="app_restart">При перезапуску</string>
     <string name="setting_menu">Меню</string>
     <string name="menu_delete_entry">Видалити запис</string>
+    <string name="dialog_content_resubmission">Надіслати дані повторно?</string>
+    <string name="dialog_supported">Підтримуються лише текстові файли.</string>
 </resources>

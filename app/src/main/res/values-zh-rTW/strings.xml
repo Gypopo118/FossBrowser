@@ -5,7 +5,6 @@
     <string name="app_help">說明</string>
     <string name="app_done">完成</string>
     <string name="app_error">错误</string>
-    <string name="app_warning">警告（Warning）</string>
     <string name="app_permission">要使用这个功能，你必须授予权限。之后，重新启动应用程序。</string>
     <string name="list_empty">清單是空的</string>
     <string name="album_title_tab">已開啟的分頁</string>
@@ -64,7 +63,6 @@
     <string name="setting_title_javascript">JavaScript</string>
     <string name="setting_title_adblock">AdBlock</string>
     <string name="setting_title_location">位置</string>
-    <string name="data_summary">所有文件都將導出到 SD 卡的“Documents/browser_backup/”目錄。</string>
     <string name="clear_title_quit">離開後清除</string>
     <string name="clear_title_cache">清除快取</string>
     <string name="setting_title_ui">行為/介面</string>
@@ -104,7 +102,6 @@
     <string name="toast_quit">是否退出FOSS瀏覽器？</string>
     <string name="toast_quit_TAB">你想关闭TAB吗？</string>
     <string name="toast_unsecured">此網站使用不安全的連線（http），是否嘗試使用安全連線（https）？</string>
-    <string name="toast_backup">是否備份資料？舊的資料將被覆蓋 .</string>
     <string name="dialog_postOnWebsiteHint">要打開的網址。 將被保存以備下次使用。</string>
     <string name="dialog_postOnWebsite">在網站上發布</string>
     <string name="menu_desktopView">電腦版網站</string>
@@ -146,7 +143,6 @@
     <string name="app_permission_notification">通知</string>
     <string name="setting_title_savedWebSites">儲存的網站</string>
     <string name="setting_title_dynColors">動態色彩</string>
-    <string name="setting_backup_ext">退出時備份</string>
     <string name="setting_backup_sumSettings">應用程式與網站設定</string>
     <string name="album_title_bookmarks_html">書籤 (HTML)</string>
     <string name="privacy_redirect_use">使用重定向</string>
