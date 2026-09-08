@@ -99,7 +99,7 @@ public class AdapterRecord extends ArrayAdapter<Record> {
             holder.cardView.setCardBackgroundColor(ResourcesCompat.getColor(context.getResources(), R.color.grey, null));
         } else {
             TypedValue typedValue = new TypedValue();
-            context.getTheme().resolveAttribute(R.attr.colorSurfaceContainerHighest, typedValue, true);
+            context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorSurfaceContainerHighest, typedValue, true);
             int color = typedValue.data;
             holder.cardView.setCardBackgroundColor(color);
         }

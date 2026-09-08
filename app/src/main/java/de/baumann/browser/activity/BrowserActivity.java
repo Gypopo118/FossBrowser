@@ -270,12 +270,8 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
                     }
                 }
                 // Ergebnis an die WebView zurückgeben
-                if (results != null) {
-                    mFilePathCallback.onReceiveValue(results);
-                } else {
-                    // WICHTIG: Sendet bei Abbruch ein leeres Array, damit die WebView nicht blockiert/einfriert
-                    mFilePathCallback.onReceiveValue(new Uri[0]);
-                }
+                // WICHTIG: Sendet bei Abbruch ein leeres Array, damit die WebView nicht blockiert/einfriert
+                mFilePathCallback.onReceiveValue(Objects.requireNonNullElseGet(results, () -> new Uri[0]));
                 mFilePathCallback = null;
                 currentPhotoFile = null;
             }
@@ -356,7 +352,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
 
         WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
         controller.setAppearanceLightStatusBars(false);
-        findViewById(R.id.main).setBackgroundColor(ContextCompat.getColor(context, R.color.design_default_color_on_secondary));
+        findViewById(R.id.main).setBackgroundColor(ContextCompat.getColor(context, com.google.android.material.R.color.design_default_color_on_secondary));
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -688,10 +684,10 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         AtomicInteger intPage = new AtomicInteger();
 
         TypedValue typedValue = new TypedValue();
-        context.getTheme().resolveAttribute(R.attr.colorPrimaryInverse, typedValue, true);
+        context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorPrimaryInverse, typedValue, true);
         int color = typedValue.data;
         TypedValue typedValue2 = new TypedValue();
-        context.getTheme().resolveAttribute(R.attr.colorOnSurface, typedValue2, true);
+        context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue2, true);
         int color2 = typedValue2.data;
 
         bottom_navigation.getOrCreateBadge(R.id.page_0).setBackgroundColor(color);
@@ -931,9 +927,9 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         badgeDrawable = BadgeDrawable.create(context);
 
         TypedValue typedValue = new TypedValue();
-        context.getTheme().resolveAttribute(R.attr.colorPrimaryInverse, typedValue, true);
+        context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorPrimaryInverse, typedValue, true);
         badgeDrawable.setBackgroundColor(typedValue.data);
-        context.getTheme().resolveAttribute(R.attr.colorOnSurface, typedValue, true);
+        context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true);
         badgeDrawable.setBadgeTextColor(typedValue.data);
 
         fab_overview.setOnTouchListener(new SwipeTouchListener(context) {
@@ -993,7 +989,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             return true;
         });
 
-        context.getTheme().resolveAttribute(R.attr.colorOnSurface, typedValue, true);
+        context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true);
         ColorStateList colorActive = ColorStateList.valueOf(typedValue.data);
         ColorStateList colorInactive = ColorStateList.valueOf(Color.GRAY);
 
@@ -1041,9 +1037,10 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         searchOnSiteLayout.setVisibility(GONE);
         appBar.setVisibility(VISIBLE);
         searchOnSiteInput.setText("");
+
         badgeDrawable.setVisible(BrowserContainer.size() > 1);
         badgeDrawable.setNumber(BrowserContainer.size());
-        BadgeUtils.attachBadgeDrawable(badgeDrawable, fab_overview, findViewById(R.id.layout));
+        BadgeUtils.attachBadgeDrawable(badgeDrawable, fab_overview);
         bottom_navigation.getOrCreateBadge(R.id.page_0).setNumber(BrowserContainer.size());
 
         ninjaWebView = (NinjaWebView) currentAlbumController;
@@ -1298,196 +1295,172 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
 
             dialog_overflow.cancel();
 
-            switch (item.getIconResId()) {
-                case R.drawable.icon_fav:
-                    ninjaWebView.loadUrl(favURL);
-                    break;
-                case R.drawable.icon_tab_plus:
-                    if (hideMenu ==2) {dialog.cancel();}
-                    addAlbum(HelperUnit.domain(url), url, true);
-                    break;
-                case R.drawable.icon_tab_background:
-                    addAlbum(HelperUnit.domain(url), url, false);
-                    break;
-                case R.drawable.icon_refresh:
-                    ninjaWebView.reload();
-                    break;
-                case R.drawable.icon_tab_remove:
-                    removeAlbum(currentAlbumController);
-                    if (BrowserContainer.size() < 2) {
-                        hideOverview();
-                    }
-                    break;
-                case R.drawable.icon_close:
-                    doubleTapsQuit();
-                    break;
-                case R.drawable.icon_bookmark:
-                    saveBookmark(title, url);
-                    break;
-                case R.drawable.icon_file:
-                    PrintManager printManager = (PrintManager) getSystemService(Context.PRINT_SERVICE);
-                    PrintDocumentAdapter printAdapter = ninjaWebView.createPrintDocumentAdapter(title);
-                    Objects.requireNonNull(printManager).print(title, printAdapter, new PrintAttributes.Builder().build());
-                    sp.edit().putBoolean("pdf_create", true).apply();
-                    break;
-                case R.drawable.icon_menu_save:
-                    assert url != null;
-                    NinjaDownloadListener.saveAs(activity, url, null, dialog_overflow);
-                    break;
-                case R.drawable.icon_fav_plus:
-                    sp.edit().putString("favoriteURL", url).apply();
+            int resId = item.getIconResId();
+
+            if (resId == R.drawable.icon_fav) {
+                ninjaWebView.loadUrl(favURL);
+            } else if (resId == R.drawable.icon_tab_plus) {
+                if (hideMenu == 2) { dialog.cancel(); }
+                addAlbum(HelperUnit.domain(url), url, true);
+            } else if (resId == R.drawable.icon_tab_background) {
+                addAlbum(HelperUnit.domain(url), url, false);
+            } else if (resId == R.drawable.icon_refresh) {
+                ninjaWebView.reload();
+            } else if (resId == R.drawable.icon_tab_remove) {
+                removeAlbum(currentAlbumController);
+                if (BrowserContainer.size() < 2) {
+                    hideOverview();
+                }
+            } else if (resId == R.drawable.icon_close) {
+                doubleTapsQuit();
+            } else if (resId == R.drawable.icon_bookmark) {
+                saveBookmark(title, url);
+            } else if (resId == R.drawable.icon_file) {
+                PrintManager printManager = (PrintManager) getSystemService(Context.PRINT_SERVICE);
+                PrintDocumentAdapter printAdapter = ninjaWebView.createPrintDocumentAdapter(title);
+                Objects.requireNonNull(printManager).print(title, printAdapter, new PrintAttributes.Builder().build());
+                sp.edit().putBoolean("pdf_create", true).apply();
+            } else if (resId == R.drawable.icon_menu_save) {
+                assert url != null;
+                NinjaDownloadListener.saveAs(activity, url, null, dialog_overflow);
+            } else if (resId == R.drawable.icon_fav_plus) {
+                sp.edit().putString("favoriteURL", url).apply();
+                NinjaToast.show(this, R.string.app_done);
+            } else if (resId == R.drawable.icon_share) {
+                shareLink(title, url);
+            } else if (resId == R.drawable.icon_post) {
+                String text = title + ": " + url;
+                postLink(text, dialog_overflow);
+            } else if (resId == R.drawable.icon_clipboard) {
+                copyLink(url);
+            } else if (resId == R.drawable.icon_share_open_with) {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(url));
+                context.startActivity(Intent.createChooser(intent, null));
+            } else if (resId == R.drawable.icon_home) {
+                HelperUnit.createShortcut(context, title, url);
+            } else if (resId == R.drawable.icon_search_site) {
+                searchOnSite();
+            } else if (resId == R.drawable.icon_download) {
+                startActivity(Intent.createChooser(new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS), null));
+            } else if (resId == R.drawable.icon_settings) {
+                Intent settings = new Intent(BrowserActivity.this, Settings_Activity.class);
+                startActivity(settings);
+            } else if (resId == R.drawable.icon_restart) {
+                triggerRebirth(context);
+            } else if (resId == R.drawable.icon_help) {
+                Uri webpage = Uri.parse("https://codeberg.org/Gaukler_Faun/FOSS_Browser/wiki/Home");
+                BrowserUnit.intentURL(this, webpage);
+            } else if (resId == R.drawable.icon_delete) {
+                Snackbar snackbarSearch = Snackbar.make(view, R.string.hint_database, Snackbar.LENGTH_SHORT);
+                HelperUnit.makeSnackbarRound(snackbarSearch);
+                snackbarSearch.setAction(context.getString(R.string.app_ok), (v -> {
+                    action.open(true);
+                    action.deleteURL(url, RecordUnit.TABLE_START);
+                    action.deleteURL(url, RecordUnit.TABLE_BOOKMARK);
+                    action.deleteURL(url, RecordUnit.TABLE_HISTORY);
+                    action.close();
+                    initSearch();
+                    String getText = Objects.requireNonNull(search_input.getText()).toString();
+                    search_input.setText("");
+                    search_input.setText(getText);
+                    search_input.setSelection(getText.length());
+                }));
+                snackbarSearch.show();
+            } else if (resId == R.drawable.icon_delete_alt) {
+                Snackbar snackbarList = Snackbar.make(view, R.string.hint_database, Snackbar.LENGTH_SHORT);
+                HelperUnit.makeSnackbarRound(snackbarList);
+                snackbarList.setAction(context.getString(R.string.app_ok), (v -> {
+                    Record record = recordList.get(location);
+                    action.open(true);
+                    if (overViewTab.equals(getString(R.string.album_title_bookmarks))) action.deleteURL(record.getURL(), RecordUnit.TABLE_BOOKMARK);
+                    else if (overViewTab.equals(getString(R.string.album_title_history))) action.deleteURL(record.getURL(), RecordUnit.TABLE_HISTORY);
+                    action.close();
+                    recordList.remove(location);
+                    adapterRecord.notifyDataSetChanged();
+                    updateOmniBox();
+                    dialog_overflow.cancel();
+                }));
+                snackbarList.show();
+            } else if (resId == R.drawable.icon_edit) {
+
+                MaterialAlertDialogBuilder builderSubMenuEdit = new MaterialAlertDialogBuilder(context);
+                View dialogViewSubMenu = View.inflate(context, R.layout.dialog_edit, null);
+                TextInputLayout editBottomLayout = dialogViewSubMenu.findViewById(R.id.editBottomLayout);
+                TextInputLayout editTopLayout = dialogViewSubMenu.findViewById(R.id.editTopLayout);
+                editBottomLayout.setHint(activity.getString(R.string.dialog_URL_hint));
+                editTopLayout.setHint(activity.getString(R.string.dialog_title_hint));
+                EditText editTop = dialogViewSubMenu.findViewById(R.id.editTop);
+                EditText editBottom = dialogViewSubMenu.findViewById(R.id.editBottom);
+                editTop.setText(title);
+                editBottom.setText(url);
+                MaterialCardView ib_icon = dialogViewSubMenu.findViewById(R.id.editIcon);
+                ib_icon.setVisibility(VISIBLE);
+
+                if (!overViewTab.equals(getString(R.string.album_title_bookmarks))) ib_icon.setVisibility(GONE);
+                ib_icon.setOnClickListener(v -> {
+                    MaterialAlertDialogBuilder builderFilter = new MaterialAlertDialogBuilder(context);
+                    View dialogViewFilter = View.inflate(context, R.layout.dialog_menu, null);
+                    builderFilter.setView(dialogViewFilter);
+                    builderFilter.setTitle(R.string.setting_filter);
+                    builderFilter.setIcon(R.drawable.icon_filter);
+                    AlertDialog dialogFilter = builderFilter.create();
+                    dialogFilter.show();
+                    HelperUnit.setupDialog(context, dialogFilter);
+                    CardView cardView = dialogViewFilter.findViewById(R.id.item_CardViewItem);
+                    cardView.setVisibility(GONE);
+
+                    GridView menuEditFilter = dialogViewFilter.findViewById(R.id.menu_grid);
+                    final List<GridItem> menuEditFilterList = new LinkedList<>();
+                    sp.edit().putString("showFilterDialogX", "true").apply();
+                    HelperUnit.addFilterItems(activity, menuEditFilterList);
+                    GridAdapter menuEditFilterAdapter = new GridAdapter(context, menuEditFilterList);
+                    menuEditFilter.setNumColumns(2);
+                    menuEditFilter.setHorizontalSpacing(20);
+                    menuEditFilter.setVerticalSpacing(20);
+                    menuEditFilter.setAdapter(menuEditFilterAdapter);
+                    menuEditFilterAdapter.notifyDataSetChanged();
+                    menuEditFilter.setOnItemClickListener((parent, view2, position, id) -> {
+                        newIcon = menuEditFilterList.get(position).getData();
+                        HelperUnit.setFilterIcons(context, ib_icon, newIcon);
+                        dialogFilter.cancel();
+                    });
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                            WRAP_CONTENT,
+                            WRAP_CONTENT
+                    );
+                    params.setMargins(HelperUnit.convertDpToPixel(20f, context),
+                            HelperUnit.convertDpToPixel(10f, context),
+                            HelperUnit.convertDpToPixel(20f, context),
+                            HelperUnit.convertDpToPixel(10f, context));
+                    menuEditFilter.setLayoutParams(params);
+                    dialogFilter.setOnCancelListener(dialogInterface -> sp.edit().putString("showFilterDialogX", "false").apply());
+                });
+                newIcon = recordList.get(location).getIconColor();
+                HelperUnit.setFilterIcons(context, ib_icon, newIcon);
+
+                builderSubMenuEdit.setTitle(R.string.menu_edit);
+                builderSubMenuEdit.setIcon(R.drawable.icon_edit);
+                builderSubMenuEdit.setView(dialogViewSubMenu);
+                Dialog dialogSubMenuEdit = builderSubMenuEdit.create();
+                dialogSubMenuEdit.show();
+                HelperUnit.setupDialog(context, dialogSubMenuEdit);
+
+                Button ib_cancel = dialogViewSubMenu.findViewById(R.id.editCancel);
+                ib_cancel.setOnClickListener(v -> dialogSubMenuEdit.cancel());
+                Button ib_ok = dialogViewSubMenu.findViewById(R.id.editOK);
+                ib_ok.setOnClickListener(v -> {
+                    action.open(true);
+                    action.deleteURL(url, RecordUnit.TABLE_BOOKMARK);
+                    action.deleteURL(editBottom.getText().toString(), RecordUnit.TABLE_BOOKMARK);
+                    action.addBookmark(new Record(editTop.getText().toString(), editBottom.getText().toString(), 0, newIcon));
+                    updateOmniBox();
                     NinjaToast.show(this, R.string.app_done);
-                    break;
-                case R.drawable.icon_share:
-                    shareLink(title, url);
-                    break;
-                case R.drawable.icon_post:
-                    String text = title + ": " + url;
-                    postLink(text, dialog_overflow);
-                    break;
-                case R.drawable.icon_clipboard:
-                    copyLink(url);
-                    break;
-                case R.drawable.icon_share_open_with:
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setData(Uri.parse(url));
-                    context.startActivity(Intent.createChooser(intent, null));
-                    break;
-                case R.drawable.icon_home:
-                    HelperUnit.createShortcut(context, title, url);
-                    break;
-                case R.drawable.icon_search_site:
-                    searchOnSite();
-                    break;
-                case R.drawable.icon_download:
-                    startActivity(Intent.createChooser(new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS), null));
-                    break;
-                case R.drawable.icon_settings:
-                    Intent settings = new Intent(BrowserActivity.this, Settings_Activity.class);
-                    startActivity(settings);
-                    break;
-                case R.drawable.icon_restart:
-                    triggerRebirth(context);
-                    break;
-                case R.drawable.icon_help:
-                    Uri webpage = Uri.parse("https://codeberg.org/Gaukler_Faun/FOSS_Browser/wiki/Home");
-                    BrowserUnit.intentURL(this, webpage);
-                    break;
-                case R.drawable.icon_delete:
-                    Snackbar snackbarSearch = Snackbar.make(view, R.string.hint_database, Snackbar.LENGTH_SHORT);
-                    HelperUnit.makeSnackbarRound(snackbarSearch);
-                    snackbarSearch.setAction(context.getString(R.string.app_ok), (v -> {
-                        action.open(true);
-                        action.deleteURL(url, RecordUnit.TABLE_START);
-                        action.deleteURL(url, RecordUnit.TABLE_BOOKMARK);
-                        action.deleteURL(url, RecordUnit.TABLE_HISTORY);
-                        action.close();
-                        initSearch();
-                        String getText = Objects.requireNonNull(search_input.getText()).toString();
-                        search_input.setText("");
-                        search_input.setText(getText);
-                        search_input.setSelection(getText.length());
-                    }));
-                    snackbarSearch.show();
-                    break;
-                case R.drawable.icon_delete_alt:
-                    Snackbar snackbarList = Snackbar.make(view, R.string.hint_database, Snackbar.LENGTH_SHORT);
-                    HelperUnit.makeSnackbarRound(snackbarList);
-                    snackbarList.setAction(context.getString(R.string.app_ok), (v -> {
-                        Record record = recordList.get(location);
-                        action.open(true);
-                        if (overViewTab.equals(getString(R.string.album_title_bookmarks))) action.deleteURL(record.getURL(), RecordUnit.TABLE_BOOKMARK);
-                        else if (overViewTab.equals(getString(R.string.album_title_history))) action.deleteURL(record.getURL(), RecordUnit.TABLE_HISTORY);
-                        action.close();
-                        recordList.remove(location);
-                        adapterRecord.notifyDataSetChanged();
-                        updateOmniBox();
-                        dialog_overflow.cancel();
-                    }));
-                    snackbarList.show();
-                    break;
-                case R.drawable.icon_edit:
+                    action.close();
+                    bottom_navigation.setSelectedItemId(R.id.page_2);
+                    dialogSubMenuEdit.cancel();
+                });
 
-                    MaterialAlertDialogBuilder builderSubMenuEdit = new MaterialAlertDialogBuilder(context);
-                    View dialogViewSubMenu = View.inflate(context, R.layout.dialog_edit, null);
-                    TextInputLayout editBottomLayout = dialogViewSubMenu.findViewById(R.id.editBottomLayout);
-                    TextInputLayout editTopLayout = dialogViewSubMenu.findViewById(R.id.editTopLayout);
-                    editBottomLayout.setHint(activity.getString(R.string.dialog_URL_hint));
-                    editTopLayout.setHint(activity.getString(R.string.dialog_title_hint));
-                    EditText editTop = dialogViewSubMenu.findViewById(R.id.editTop);
-                    EditText editBottom = dialogViewSubMenu.findViewById(R.id.editBottom);
-                    editTop.setText(title);
-                    editBottom.setText(url);
-                    MaterialCardView ib_icon = dialogViewSubMenu.findViewById(R.id.editIcon);
-                    ib_icon.setVisibility(VISIBLE);
-
-                    if (!overViewTab.equals(getString(R.string.album_title_bookmarks))) ib_icon.setVisibility(GONE);
-                    ib_icon.setOnClickListener(v -> {
-                        MaterialAlertDialogBuilder builderFilter = new MaterialAlertDialogBuilder(context);
-                        View dialogViewFilter = View.inflate(context, R.layout.dialog_menu, null);
-                        builderFilter.setView(dialogViewFilter);
-                        builderFilter.setTitle(R.string.setting_filter);
-                        builderFilter.setIcon(R.drawable.icon_filter);
-                        AlertDialog dialogFilter = builderFilter.create();
-                        dialogFilter.show();
-                        HelperUnit.setupDialog(context, dialogFilter);
-                        CardView cardView = dialogViewFilter.findViewById(R.id.item_CardViewItem);
-                        cardView.setVisibility(GONE);
-
-                        GridView menuEditFilter = dialogViewFilter.findViewById(R.id.menu_grid);
-                        final List<GridItem> menuEditFilterList = new LinkedList<>();
-                        sp.edit().putString("showFilterDialogX", "true").apply();
-                        HelperUnit.addFilterItems(activity, menuEditFilterList);
-                        GridAdapter menuEditFilterAdapter = new GridAdapter(context, menuEditFilterList);
-                        menuEditFilter.setNumColumns(2);
-                        menuEditFilter.setHorizontalSpacing(20);
-                        menuEditFilter.setVerticalSpacing(20);
-                        menuEditFilter.setAdapter(menuEditFilterAdapter);
-                        menuEditFilterAdapter.notifyDataSetChanged();
-                        menuEditFilter.setOnItemClickListener((parent, view2, position, id) -> {
-                            newIcon = menuEditFilterList.get(position).getData();
-                            HelperUnit.setFilterIcons(context, ib_icon, newIcon);
-                            dialogFilter.cancel();
-                        });
-                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                                WRAP_CONTENT,
-                                WRAP_CONTENT
-                        );
-                        params.setMargins(HelperUnit.convertDpToPixel(20f, context),
-                                HelperUnit.convertDpToPixel(10f, context),
-                                HelperUnit.convertDpToPixel(20f, context),
-                                HelperUnit.convertDpToPixel(10f, context));
-                        menuEditFilter.setLayoutParams(params);
-                        dialogFilter.setOnCancelListener(dialogInterface -> sp.edit().putString("showFilterDialogX", "false").apply());
-                    });
-                    newIcon = recordList.get(location).getIconColor();
-                    HelperUnit.setFilterIcons(context, ib_icon, newIcon);
-
-                    builderSubMenuEdit.setTitle(R.string.menu_edit);
-                    builderSubMenuEdit.setIcon(R.drawable.icon_edit);
-                    builderSubMenuEdit.setView(dialogViewSubMenu);
-                    Dialog dialogSubMenuEdit = builderSubMenuEdit.create();
-                    dialogSubMenuEdit.show();
-                    HelperUnit.setupDialog(context, dialogSubMenuEdit);
-
-                    Button ib_cancel = dialogViewSubMenu.findViewById(R.id.editCancel);
-                    ib_cancel.setOnClickListener(v -> dialogSubMenuEdit.cancel());
-                    Button ib_ok = dialogViewSubMenu.findViewById(R.id.editOK);
-                    ib_ok.setOnClickListener(v -> {
-                        action.open(true);
-                        action.deleteURL(url, RecordUnit.TABLE_BOOKMARK);
-                        action.deleteURL(editBottom.getText().toString(), RecordUnit.TABLE_BOOKMARK);
-                        action.addBookmark(new Record(editTop.getText().toString(), editBottom.getText().toString(), 0, newIcon));
-                        updateOmniBox();
-                        NinjaToast.show(this, R.string.app_done);
-                        action.close();
-                        bottom_navigation.setSelectedItemId(R.id.page_2);
-                        dialogSubMenuEdit.cancel();
-                    });
-                    break;
-                default:
-                    // Fallback, falls ein neuer Eintrag hinzugefügt, aber hier vergessen wurde
-                    break;
             }
         });
         recyclerView.setAdapter(adapter);
@@ -1550,7 +1523,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         List_standard listStandard = new List_standard(context);
         TypedValue typedValue = new TypedValue();
         Resources.Theme theme = context.getTheme();
-        theme.resolveAttribute(R.attr.colorError, typedValue, true);
+        theme.resolveAttribute(androidx.appcompat.R.attr.colorError, typedValue, true);
         int color = typedValue.data;
         if (listStandard.isWhite(url)) {
             buttonProfile.getDrawable().mutate().setTint(color);
@@ -2057,7 +2030,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         String profile = sp.getString("profile", "profileStandard");
         TypedValue typedValue = new TypedValue();
         Resources.Theme theme = context.getTheme();
-        theme.resolveAttribute(R.attr.colorError, typedValue, true);
+        theme.resolveAttribute(androidx.appcompat.R.attr.colorError, typedValue, true);
         int color = typedValue.data;
         if (profile.equals("profileStandard")) {
             floatingActionButton.setImageResource(R.drawable.icon_profile_standard);
@@ -2096,8 +2069,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         menu_grid.setVerticalSpacing(20);
         menu_grid.setAdapter(gridAdapter);
 
-        if (menu_grid.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
-            ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) menu_grid.getLayoutParams();
+        if (menu_grid.getLayoutParams() instanceof ViewGroup.MarginLayoutParams p) {
             p.setMargins(56, 56, 56, 56);
             menu_grid.requestLayout();
         }

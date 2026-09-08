@@ -7,6 +7,7 @@
 - new: camera in file chooser
 - new: open all kind of text based files
 - new: open text files
+- updated: build tools, gradle, libraries
 - updated: default standard profile settings
 - updated: AdBlock download
 - updated: snackbar with clickable link

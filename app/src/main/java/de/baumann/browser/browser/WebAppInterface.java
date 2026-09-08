@@ -48,8 +48,7 @@ public class WebAppInterface {
     }
     // Hilfsmethode für die Snackbar im UI-Thread
     private void showSnackbar() {
-        if (mContext instanceof Activity) {
-            Activity activity = (Activity) mContext;
+        if (mContext instanceof Activity activity) {
             activity.runOnUiThread(() -> {
                 View rootView = activity.findViewById(android.R.id.content);
                 if (rootView != null) {

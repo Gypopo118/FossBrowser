@@ -59,8 +59,7 @@ public class Fragment_settings extends BasePreferenceFragment implements SharedP
     }
 
     private void initSummary(Preference p) {
-        if (p instanceof PreferenceGroup) {
-            PreferenceGroup pGrp = (PreferenceGroup) p;
+        if (p instanceof PreferenceGroup pGrp) {
             for (int i = 0; i < pGrp.getPreferenceCount(); i++) {
                 initSummary(pGrp.getPreference(i));
             }
@@ -80,8 +79,7 @@ public class Fragment_settings extends BasePreferenceFragment implements SharedP
             });
         }
 
-        if (p instanceof ListPreference) {
-            ListPreference listPref = (ListPreference) p;
+        if (p instanceof ListPreference listPref) {
             if (p.getSummaryProvider() == null) p.setSummary(listPref.getEntry());
             if (sp_ad_block != null) sp_ad_block.setSummary(AdBlock.getHostsDate(requireContext()));
         }

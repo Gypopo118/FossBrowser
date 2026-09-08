@@ -78,7 +78,7 @@ public class EditTextSwitchPreference extends EditTextPreference {
                     holder.itemView.setBackgroundColor(ContextCompat.getColor(ctx, COLORS[num - 1]));
                 } else if (num == 12) {
                     TypedValue tv = new TypedValue();
-                    ctx.getTheme().resolveAttribute(R.attr.colorSurfaceVariant, tv, true);
+                    ctx.getTheme().resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, tv, true);
                     holder.itemView.setBackgroundColor(tv.data);
                 }
             } catch (NumberFormatException ignored) {

@@ -58,7 +58,7 @@ public class AdapterCustomSearches extends RecyclerView.Adapter<RedirectsViewHol
         ImageView remove = holder.itemView.findViewById(R.id.iconView);
 
         TypedValue typedValue = new TypedValue();
-        context.getTheme().resolveAttribute(R.attr.colorSurfaceContainerHighest, typedValue, true);
+        context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorSurfaceContainerHighest, typedValue, true);
         int color = typedValue.data;
         CardView albumCardView = holder.itemView.findViewById(R.id.item_CardViewItem);
         albumCardView.setCardBackgroundColor(color);

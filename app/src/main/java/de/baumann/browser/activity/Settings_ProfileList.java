@@ -67,7 +67,7 @@ public class Settings_ProfileList extends AppCompatActivity {
                 deleteEntry.setVisibility(View.VISIBLE);
 
                 TypedValue typedValue = new TypedValue();
-                getTheme().resolveAttribute(R.attr.colorSurface, typedValue, true);
+                getTheme().resolveAttribute(com.google.android.material.R.attr.colorSurface, typedValue, true);
                 int color = typedValue.data;
                 MaterialCardView cardView = v.findViewById(R.id.menuCardView);
                 cardView.setBackgroundColor(color);

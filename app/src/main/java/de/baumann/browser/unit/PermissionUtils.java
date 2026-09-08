@@ -19,11 +19,10 @@ public class PermissionUtils {
     }
 
     public static String getManifestString(PermissionType type) {
-        switch (type) {
-            case LOCATION: return Manifest.permission.ACCESS_FINE_LOCATION;
-            case CAMERA: return Manifest.permission.CAMERA;
-            case MICROPHONE: return Manifest.permission.RECORD_AUDIO;
-            default: throw new IllegalArgumentException("Unbekannter Typ");
-        }
+        return switch (type) {
+            case LOCATION -> Manifest.permission.ACCESS_FINE_LOCATION;
+            case CAMERA -> Manifest.permission.CAMERA;
+            case MICROPHONE -> Manifest.permission.RECORD_AUDIO;
+        };
     }
 }

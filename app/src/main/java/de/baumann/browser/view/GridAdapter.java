@@ -67,7 +67,7 @@ public class GridAdapter extends BaseAdapter {
                 else if (text.equals(sp.getString("icon_11", context.getResources().getString(R.string.color_grey)))) holder.cardView.setCardBackgroundColor(ResourcesCompat.getColor(context.getResources(), R.color.grey, null));
                 else if (text.equals(sp.getString("icon_12", context.getResources().getString(R.string.setting_theme_system)))) {
                     TypedValue typedValue = new TypedValue();
-                    context.getTheme().resolveAttribute(R.attr.colorSecondaryContainer, typedValue, true);
+                    context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorSecondaryContainer, typedValue, true);
                     int color = typedValue.data;
                     holder.cardView.setCardBackgroundColor(color);
                 }

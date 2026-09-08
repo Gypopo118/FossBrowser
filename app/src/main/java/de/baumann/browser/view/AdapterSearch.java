@@ -45,7 +45,7 @@ public class AdapterSearch extends BaseAdapter implements Filterable {
         this.faviconHelper = new FaviconHelper(context);
 
         TypedValue typedValue = new TypedValue();
-        context.getTheme().resolveAttribute(R.attr.colorSurfaceContainerHighest, typedValue, true);
+        context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorSurfaceContainerHighest, typedValue, true);
         this.cardBackgroundColor = typedValue.data;
 
         getRecordList(recordList);
@@ -146,8 +146,7 @@ public class AdapterSearch extends BaseAdapter implements Filterable {
 
         @Override
         public boolean equals(Object object) {
-            if (!(object instanceof CompleteItem)) return false;
-            CompleteItem item = (CompleteItem) object;
+            if (!(object instanceof CompleteItem item)) return false;
             return item.title.equals(title) && item.url.equals(url);
         }
 

@@ -194,7 +194,7 @@ public class HelperUnit {
             ib_icon.setCardBackgroundColor(ContextCompat.getColor(context, colors[iconIndex]));
         } else if (iconIndex == 0) {
             TypedValue typedValue = new TypedValue();
-            context.getTheme().resolveAttribute(R.attr.colorSecondaryContainer, typedValue, true);
+            context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorSecondaryContainer, typedValue, true);
             ib_icon.setCardBackgroundColor(typedValue.data);
         }
     }
@@ -203,8 +203,7 @@ public class HelperUnit {
         editText.requestFocus();
         editText.postDelayed(() -> {
             Context context = editText.getContext();
-            if (context instanceof Activity) {
-                Activity activity = (Activity) context;
+            if (context instanceof Activity activity) {
                 WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(activity.getWindow(), activity.getWindow().getDecorView());
                 controller.show(WindowInsetsCompat.Type.ime());
             } else {
@@ -219,7 +218,7 @@ public class HelperUnit {
 
     public static void setupDialog(Context context, Dialog dialog) {
         TypedValue tv = new TypedValue();
-        context.getTheme().resolveAttribute(R.attr.colorError, tv, true);
+        context.getTheme().resolveAttribute(androidx.appcompat.R.attr.colorError, tv, true);
         ImageView iv = dialog.findViewById(android.R.id.icon);
         if (iv != null) iv.setColorFilter(tv.data, PorterDuff.Mode.SRC_IN);
         if (dialog.getWindow() != null) dialog.getWindow().setGravity(Gravity.BOTTOM);
@@ -245,11 +244,11 @@ public class HelperUnit {
         Spannable wordToSpan = new SpannableString(originalText);
 
         TypedValue tvError = new TypedValue();
-        context.getTheme().resolveAttribute(R.attr.colorError, tvError, true);
+        context.getTheme().resolveAttribute(androidx.appcompat.R.attr.colorError, tvError, true);
         int colorError = tvError.data;
 
         TypedValue tvOnSurface = new TypedValue();
-        context.getTheme().resolveAttribute(R.attr.colorOnSurface, tvOnSurface, true);
+        context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSurface, tvOnSurface, true);
         int colorOnSurface = tvOnSurface.data;
 
         boolean isWhite = false;
@@ -283,7 +282,7 @@ public class HelperUnit {
 
         Spannable wordToSpan = new SpannableString(originalText);
         TypedValue typedValue = new TypedValue();
-        context.getTheme().resolveAttribute(R.attr.colorError, typedValue, true);
+        context.getTheme().resolveAttribute(androidx.appcompat.R.attr.colorError, typedValue, true);
         int accentColor = typedValue.data;
 
         int searchLength = lowerSearch.length();
@@ -399,7 +398,7 @@ public class HelperUnit {
         }
 
         TypedValue typedValue = new TypedValue();
-        context.getTheme().resolveAttribute(R.attr.colorPrimaryInverse, typedValue, true);
+        context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorPrimaryInverse, typedValue, true);
         int inversePrimaryColor = typedValue.data;
 
         LayoutInflater inflater = LayoutInflater.from(context);
@@ -508,7 +507,7 @@ public class HelperUnit {
     }
     public static void makeSnackbarRound (Snackbar snackbar) {
         View snackbarView = snackbar.getView();
-        TextView textView = snackbarView.findViewById(R.id.snackbar_text);
+        TextView textView = snackbarView.findViewById(com.google.android.material.R.id.snackbar_text);
         if (textView != null) {
             textView.setMaxLines(30);
         }

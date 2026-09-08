@@ -112,22 +112,15 @@ public class BrowserUnit {
                 return customSearchEngine + query;
             } else {
                 final int i = Integer.parseInt(Objects.requireNonNull(sp.getString("sp_search_engine", "0")));
-                switch (i) {
-                    case 0:
-                        return "https://startpage.com/do/search?query=" + query;
-                    case 1:
-                        return "https://startpage.com/do/search?lui=deu&language=deutsch&query=" + query;
-                    case 4:
-                        return "https://duckduckgo.com/?q=" + query;
-                    case 6:
-                        return "https://searx.be/?q=" + query;
-                    case 7:
-                        return "https://www.qwant.com/?q=" + query;
-                    case 8:
-                        return "https://www.ecosia.org/search?q=" + query;
-                    default:
-                        return "https://www.mojeek.com/search?q=" + query;
-                }
+                return switch (i) {
+                    case 0 -> "https://startpage.com/do/search?query=" + query;
+                    case 1 -> "https://startpage.com/do/search?lui=deu&language=deutsch&query=" + query;
+                    case 4 -> "https://duckduckgo.com/?q=" + query;
+                    case 6 -> "https://searx.be/?q=" + query;
+                    case 7 -> "https://www.qwant.com/?q=" + query;
+                    case 8 -> "https://www.ecosia.org/search?q=" + query;
+                    default -> "https://www.mojeek.com/search?q=" + query;
+                };
             }
         }
     }

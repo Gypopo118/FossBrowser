@@ -61,7 +61,7 @@ public class AdapterCustomRedirect extends RecyclerView.Adapter<RedirectsViewHol
         CardView albumCardView = holder.itemView.findViewById(R.id.item_CardViewItem);
 
         TypedValue typedValue = new TypedValue();
-        context.getTheme().resolveAttribute(R.attr.colorSurfaceContainerHighest, typedValue, true);
+        context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorSurfaceContainerHighest, typedValue, true);
         int color = typedValue.data;
         albumCardView.setCardBackgroundColor(color);
 

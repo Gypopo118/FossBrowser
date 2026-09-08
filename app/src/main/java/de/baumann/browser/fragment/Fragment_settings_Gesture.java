@@ -23,8 +23,7 @@ public class Fragment_settings_Gesture extends BasePreferenceFragment implements
     }
 
     private void initSummary(Preference p) {
-        if (p instanceof PreferenceGroup) {
-            PreferenceGroup group = (PreferenceGroup) p;
+        if (p instanceof PreferenceGroup group) {
             for (int i = 0; i < group.getPreferenceCount(); i++) {
                 initSummary(group.getPreference(i));
             }
