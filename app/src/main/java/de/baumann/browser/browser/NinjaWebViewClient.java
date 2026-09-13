@@ -49,7 +49,6 @@ public class NinjaWebViewClient extends WebViewClient {
     private final AdBlock adBlock;
 
     public NinjaWebViewClient(NinjaWebView ninjaWebView) {
-        super();
         this.ninjaWebView = ninjaWebView;
         this.context = ninjaWebView.getContext();
         this.sp = PreferenceManager.getDefaultSharedPreferences(context);
@@ -481,7 +480,25 @@ public class NinjaWebViewClient extends WebViewClient {
                 view.loadUrl(url);
             }
             return false;
-        } else  {
+        } else{
+            // 1. Prüfen, ob es sich um eine fehlerhafte lokale Google-Weiterleitung handelt
+            if (url.startsWith("file:///httpservice/")) {
+                // Ignorieren, da es ein ungültiger lokaler Pfad ist
+                return true;
+            }
+
+            // 2. Sicherheits-Check für alle anderen file:// URLs
+            if (url.startsWith("file://")) {
+                // Option A: Einfach blockieren, damit es nicht abstürzt
+                // return true;
+
+                // Option B: Wenn du lokale Dateien absichtlich teilen willst,
+                // musst du sie über den FileProvider jagen (wie in der vorherigen Nachricht beschrieben).
+                // Für den Google-Fehler reicht es aber, das oben in Schritt 1 abzufangen.
+                return true;
+            }
+
+            // Normaler Ablauf für http/https Links
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setData(Uri.parse(url));
             context.startActivity(Intent.createChooser(intent, url));

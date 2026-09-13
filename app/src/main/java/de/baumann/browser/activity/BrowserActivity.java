@@ -1000,7 +1000,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (s == null) return;
-                ColorStateList tint = (s.length() > 0) ? colorActive : colorInactive;
+                ColorStateList tint = (!TextUtils.isEmpty(s)) ? colorActive : colorInactive;
                 search_textField.setStartIconTintList(tint);
                 search_textField.setEndIconTintList(tint);
                 adapterSearch.getFilter().filter(s);
@@ -1067,7 +1067,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         TextInputLayout searchOnSite_textField  = findViewById(R.id.searchOnSite_textField);
         assert searchOnSite_textField != null;
         searchOnSite_buttonClose.setOnClickListener(v -> {
-            if (searchOnSiteInput.getText().length() > 0) searchOnSiteInput.setText("");
+            if (!TextUtils.isEmpty(searchOnSiteInput.getText())) searchOnSiteInput.setText("");
             else {
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(searchOnSiteInput.getWindowToken(), 0);

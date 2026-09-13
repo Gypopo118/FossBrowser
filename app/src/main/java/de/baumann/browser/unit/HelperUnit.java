@@ -91,8 +91,7 @@ public class HelperUnit {
         if (context == null || url == null) return;
 
         Icon icon;
-        try {
-            FaviconHelper faviconHelper = new FaviconHelper(context);
+        try (FaviconHelper faviconHelper = new FaviconHelper(context)) {
             Bitmap favicon = faviconHelper.getFavicon(url);
             if (favicon != null && !favicon.isRecycled()) {
                 icon = Icon.createWithBitmap(favicon);
@@ -209,7 +208,7 @@ public class HelperUnit {
             } else {
                 InputMethodManager imm = context.getSystemService(InputMethodManager.class);
                 if (imm != null) {
-                    imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
+                    imm.showSoftInput(editText, 0);
                 }
             }
             editText.selectAll();
@@ -379,7 +378,7 @@ public class HelperUnit {
             );
         }
         if (text != null && !text.isEmpty()) {
-            if (snackbarText.length() > 0) {
+            if (!TextUtils.isEmpty(snackbarText)) {
                 snackbarText.append("\n\n");
             }
             snackbarText.append(text);
