@@ -31,6 +31,25 @@ jobs:
           java-version: '21'
           cache: gradle
 
+      - name: Set up signing key
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          if [ -n "$SIGNING_KEYSTORE_BASE64" ]; then
+            echo "$SIGNING_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/fossbrowser.p12"
+            {
+              echo "FOSSBROWSER_KEYSTORE=$RUNNER_TEMP/fossbrowser.p12"
+              echo "FOSSBROWSER_STORE_PASSWORD=$SIGNING_STORE_PASSWORD"
+              echo "FOSSBROWSER_KEY_ALIAS=$SIGNING_KEY_ALIAS"
+              echo "FOSSBROWSER_KEY_PASSWORD=$SIGNING_KEY_PASSWORD"
+            } >> "$GITHUB_ENV"
+          else
+            echo "Signing secrets are not configured; using the default debug key."
+          fi
+
       - name: Make gradlew executable
         run: chmod +x gradlew
 
@@ -39,6 +58,16 @@ jobs:
 
       - name: Show APK info
         run: ls -lh app/build/outputs/apk/debug/
+
+      - name: Print APK signing certificate
+        run: |
+          APK=$(ls app/build/outputs/apk/debug/*.apk)
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f 2>/dev/null | sort -V | tail -1)
+          if [ -n "$APKSIGNER" ]; then
+            "$APKSIGNER" verify --print-certs "$APK"
+          else
+            echo "apksigner not found, skipping certificate check"
+          fi
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
